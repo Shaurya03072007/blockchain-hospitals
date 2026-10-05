@@ -1,0 +1,6 @@
+{
+  "name": "MedChain Guard - Blockchain Healthcare Security System",
+  "description": "LAN-based academic prototype combining Ethereum smart contract audit logging, EHR data integrity verification, role-based access control, and ML anomaly detection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
