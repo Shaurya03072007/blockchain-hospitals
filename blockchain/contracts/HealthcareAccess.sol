@@ -2,6 +2,176 @@
 pragma solidity ^0.8.20;
 
 /**
+ * @title HealthcareAccess
+ * @dev Smart Contract for immutable audit trails and EHR integrity verification.
+ */
+contract HealthcareAccess {
+    address public contractOwner;
+
+    struct AccessEvent {
+        uint256 eventId;
+        string patientCode;
+        string actorUsername;
+        string actorRole;
+        string actionType;
+        string recordHash;
+        uint256 timestamp;
+        bool isAuthorized;
+    }
+
+    struct PatientRecord {
+        string recordHash;
+        uint256 lastUpdated;
+    }
+
+    mapping(string => PatientRecord) private patientRecords;
+    mapping(string => mapping(address => bool)) private doctorPermissions;
+    AccessEvent[] private accessEvents;
+    mapping(string => uint256[]) private patientEventIndices;
+
+    event AccessLogged(
+        uint256 indexed eventId,
+        string indexed patientCode,
+        string actorUsername,
+        string actionType,
+        bool isAuthorized,
+        uint256 timestamp
+    );
+
+    event RecordRegistered(
+        string indexed patientCode,
+        string recordHash,
+        address indexed updatedBy,
+        uint256 timestamp
+    );
+
+    event PermissionGranted(
+        string indexed patientCode,
+        address indexed doctorWallet,
+        uint256 timestamp
+    );
+
+    event PermissionRevoked(
+        string indexed patientCode,
+        address indexed doctorWallet,
+        uint256 timestamp
+    );
+
+    constructor() {
+        contractOwner = msg.sender;
+    }
+
+    function registerPatientRecord(
+        string calldata patientCode,
+        string calldata recordHash
+    ) external {
+        patientRecords[patientCode] = PatientRecord({
+            recordHash: recordHash,
+            lastUpdated: block.timestamp
+        });
+
+        emit RecordRegistered(patientCode, recordHash, msg.sender, block.timestamp);
+    }
+
+    function verifyRecordHash(
+        string calldata patientCode,
+        string calldata testHash
+    ) external view returns (bool isMatch, string memory storedHash, uint256 lastUpdated) {
+        PatientRecord memory rec = patientRecords[patientCode];
+        storedHash = rec.recordHash;
+        lastUpdated = rec.lastUpdated;
+        isMatch = (keccak256(bytes(storedHash)) == keccak256(bytes(testHash)));
+    }
+
+    function recordAccessEvent(
+        string calldata patientCode,
+        string calldata actorUsername,
+        string calldata actorRole,
+        string calldata actionType,
+        string calldata recordHash,
+        bool isAuthorized
+    ) external returns (uint256) {
+        uint256 eventId = accessEvents.length + 1;
+        AccessEvent memory newEvent = AccessEvent({
+            eventId: eventId,
+            patientCode: patientCode,
+            actorUsername: actorUsername,
+            actorRole: actorRole,
+            actionType: actionType,
+            recordHash: recordHash,
+            timestamp: block.timestamp,
+            isAuthorized: isAuthorized
+        });
+
+        accessEvents.push(newEvent);
+        patientEventIndices[patientCode].push(accessEvents.length - 1);
+
+        emit AccessLogged(
+            eventId,
+            patientCode,
+            actorUsername,
+            actionType,
+            isAuthorized,
+            block.timestamp
+        );
+
+        return eventId;
+    }
+
+    function grantDoctorPermission(
+        string calldata patientCode,
+        address doctorWallet
+    ) external {
+        doctorPermissions[patientCode][doctorWallet] = true;
+        emit PermissionGranted(patientCode, doctorWallet, block.timestamp);
+    }
+
+    function revokeDoctorPermission(
+        string calldata patientCode,
+        address doctorWallet
+    ) external {
+        doctorPermissions[patientCode][doctorWallet] = false;
+        emit PermissionRevoked(patientCode, doctorWallet, block.timestamp);
+    }
+
+    function hasDoctorPermission(
+        string calldata patientCode,
+        address doctorWallet
+    ) external view returns (bool) {
+        return doctorPermissions[patientCode][doctorWallet];
+    }
+
+    function getAuditTrail(
+        string calldata patientCode
+    ) external view returns (AccessEvent[] memory) {
+        uint256[] memory indices = patientEventIndices[patientCode];
+        AccessEvent[] memory trail = new AccessEvent[](indices.length);
+        for (uint256 i = 0; i < indices.length; i++) {
+            trail[i] = accessEvents[indices[i]];
+        }
+        return trail;
+    }
+
+    function getTotalAccessEvents() external view returns (uint256) {
+        return accessEvents.length;
+    }
+
+    function getRecentEvents(
+        uint256 count
+    ) external view returns (AccessEvent[] memory) {
+        uint256 total = accessEvents.length;
+        if (count > total) {
+            count = total;
+        }
+        AccessEvent[] memory recent = new AccessEvent[](count);
+        for (uint256 i = 0; i < count; i++) {
+            recent[i] = accessEvents[total - count + i];
+        }
+        return recent;
+    }
+}
+
+/**
  * @title PatientSovereignChainMesh
  * @dev Manages per-patient dedicated ledgers across multiple hospitals and physician sub-nodes.
  */

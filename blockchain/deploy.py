@@ -113,17 +113,20 @@ def deploy():
     signed_tx = w3.eth.account.sign_transaction(tx, private_key=PRIVATE_KEY)
 
     print("[*] Broadcasting transaction to local blockchain...")
-    tx_hash = w3.eth.send_raw_transaction(signed_tx.raw_transaction)
+    raw_tx = getattr(signed_tx, "rawTransaction", getattr(signed_tx, "raw_transaction", None))
+    tx_hash = w3.eth.send_raw_transaction(raw_tx)
     print(f"[*] Tx Hash: {tx_hash.hex()}. Waiting for block confirmation...")
 
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-    contract_address = receipt.contractAddress
+    contract_address = receipt.contractAddress if hasattr(receipt, "contractAddress") else receipt["contractAddress"]
+    block_number = receipt.blockNumber if hasattr(receipt, "blockNumber") else receipt["blockNumber"]
+    gas_used = receipt.gasUsed if hasattr(receipt, "gasUsed") else receipt["gasUsed"]
 
     print("\n" + "="*60)
     print(f"[SUCCESS] HealthcareAccess Deployed!")
     print(f"Contract Address: {contract_address}")
-    print(f"Block Number:     {receipt.blockNumber}")
-    print(f"Gas Used:         {receipt.gasUsed}")
+    print(f"Block Number:     {block_number}")
+    print(f"Gas Used:         {gas_used}")
     print("="*60 + "\n")
 
     # Save deployment info
@@ -134,7 +137,7 @@ def deploy():
         "contract_name": "HealthcareAccess",
         "contract_address": contract_address,
         "deployer_address": deployer_address,
-        "block_number": receipt.blockNumber,
+        "block_number": block_number,
         "tx_hash": tx_hash.hex(),
         "abi": abi
     }

@@ -159,45 +159,63 @@ http://192.168.1.100:5000
 
 ---
 
-## 7. Demonstration Accounts
+## 7. Core Decentralized Architecture & Governance Rules
 
-| Role | Username | Password | Purpose & Assigned Permissions |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin` | `admin123` | Full system oversight, security alerts, smart contract inspector. |
-| **Doctor 1** | `doctor1` | `doctor123` | **Dr. Robert Vance, MD**. Assigned to **P-1001** and **P-1002**. *(Unauthorized for P-1003)* |
-| **Doctor 2** | `doctor2` | `doctor123` | **Dr. Sarah Chen, MD**. Assigned to **P-1002** and **P-1003**. |
-| **Patient 1** | `patient1` | `patient123` | **Johnathan Doe**. Can only view their own record (**P-1001**) and access history. |
-| **Security Officer** | `security1` | `sec123` | **Chief Auditor Michael Reed**. Investigates ML anomaly flags and threat bursts. |
+The system enforces 7 critical cryptographic and operational rules:
+
+1. **Decentralized Self-Registration (Pending Admin Approval):**
+   - Everyone (Doctors, Staff, Patients) registers themselves directly from their own device/browser (`/api/auth/register`).
+   - Accounts enter a `PENDING` state on the blockchain. Unapproved users cannot enter or access records.
+   - The Administrator can **ONLY approve** registrations (`/api/admin/approve-user/<id>`). If not approved, the account remains pending indefinitely; the Administrator cannot deny or delete them.
+2. **Device Hardware Ownership & No Admin User Creation:**
+   - Every user owns and binds their individual device/hardware identity (`DEV-xxxxxxxx`).
+   - The Administrator has **NO ability to create users** (doctor, staff, or patient). Admin user-creation features are strictly disabled.
+3. **Doctor-Patient Consent Governance:**
+   - When a Doctor is registered and approved on their device, and a Patient is registered on theirs, the Doctor **CANNOT view the patient's medical history** by default.
+   - The Doctor must submit an **Access Request** specifying the clinical purpose (`/api/permissions/request`).
+   - The Patient reviews the request on their device and clicks **Grant Access** or **Deny Access**. Consent grants and revocations are permanently committed to the blockchain.
+4. **Second Hospital Dual Governance & Mandatory Block Rejection Reason:**
+   - If a secondary hospital node requests access to a patient's EHR, the transfer requires **DUAL approval** by BOTH the Patient and the Administrator.
+   - **Patient Absolute Veto:** The Patient has the absolute right to reject the request (`/patient-decision`). If rejected, the transfer is permanently terminated; no party or administrator can question or override it.
+   - **Admin Rejection Reason in Block:** If the Administrator rejects the transfer (`/admin-decision`), the Administrator **MUST specify a reason**. This reason is permanently anchored directly into the blockchain transaction and block payload!
+5. **Mobile-First Responsive Interface (Phone Target):**
+   - The interface is specifically optimized for smartphones and tablets (viewports 360px–430px+), featuring a responsive top bar with hardware identity pills, bottom mobile navigation dock, bottom sheet modals, and touch-optimized action targets.
+6. **Device Hardware Binding & Cryptographic Migration Token:**
+   - An account is bound one-time to the user's registered hardware device.
+   - If the user changes devices (e.g. buys a new phone), they generate a 24-hour **Device Migration Hash** (`MIGRATE-XXXX-XXXX`) on their old device (`/api/device/generate-transfer-hash`).
+   - Entering this hash with their credentials on the new device transfers access, binds the new device, and unbinds the old device on the blockchain.
+7. **Lost Device Recovery Workflow:**
+   - If a user loses their old device, they submit a **Lost Device Recovery Request** (`/api/device/recovery-request`) providing their Full Legal Name and Patient ID / Username.
+   - The Administrator verifies their identity in the Admin Console and clicks **Verify & Approve Reset**. The old device lock is cleared on-chain, allowing the user to bind a fresh replacement device.
 
 ---
 
 ## 8. Guided Evaluator Demonstration Workflows
 
-### Demo 1: Normal Authorized Clinical Access
-1. Sign in or switch role to `doctor1`.
-2. Select patient **P-1001 (Johnathan Doe)**.
-3. The clinical chart displays diagnoses, allergies, and prescriptions.
-4. An on-chain `VIEW_RECORD` access event is submitted to Ganache with a live Transaction Hash (`0x...`) and block confirmation.
-5. Audit log reflects `SUCCESS` with low ML risk score ($0.04$).
+### Demo 1: Self-Registration & Admin Approval (Req 1 & 2)
+1. On a mobile or laptop browser, click **Register**. Select **Doctor** or **Patient**, enter credentials, and submit.
+2. The account is created in `PENDING` state. Attempting to sign in yields an amber notice: `Account Pending Admin Approval`.
+3. Sign in as `admin`. Open the **Admin Approvals** tab.
+4. Click **Approve Registration**. The user is enrolled on the blockchain and can now sign in.
 
-### Demo 2: Unauthorized RBAC Violation (HTTP 403)
-1. Sign in as `doctor1`.
-2. Select patient **P-1003 (Alice Wong)**, assigned exclusively to Dr. Chen.
-3. Flask halts the request with an HTTP 403 Access Denied banner.
-4. An on-chain `UNAUTHORIZED_ACCESS` violation is recorded to the blockchain.
-5. The Admin/Security dashboard rings a **HIGH severity RBAC Violation Alert**.
+### Demo 2: Doctor Requests Patient Consent (Req 3)
+1. Sign in as a Doctor. Select a patient.
+2. The clinical record displays a lock banner: `Medical History Protected by Patient Consent`.
+3. Click **Request Patient Consent**, enter the consultation reason, and submit.
+4. Sign in as the Patient on their phone. Under **Patient Consent**, locate the pending request and click **Grant Access**.
+5. Switch back to the Doctor: the medical history, diagnoses, and prescriptions are now completely unlocked and verified!
 
-### Demo 3: Machine Learning Anomaly Detection
-1. Open the **ML Security Monitor** tab.
-2. Click **"Inject Bulk Scraper"** (simulates 38 patient accesses in 10 minutes at 1.2s/record).
-3. The **Isolation Forest** computes an outlier score ($-0.62$), classifying the behavior as **SUSPICIOUS (94% Threat Risk)**.
-4. An incident alert is dispatched with feature explainability reasons.
+### Demo 3: Second Hospital Dual Approval & Admin Reason in Block (Req 4)
+1. Request a transfer from Hospital 2 for a patient.
+2. Under **2nd Hospital Mesh**, the patient approves the transfer.
+3. The Administrator clicks **Admin Reject with Reason**, entering a mandatory justification (e.g., `Node lacks encryption compliance`).
+4. The rejection and reason are permanently committed to the Ethereum block, visible in the ledger.
 
-### Demo 4: Data Tampering & Cryptographic Verification
-1. Open patient **P-1001** and click **"Verify Record Integrity"**.
-2. Flask computes the canonical SHA-256 hash and compares it with the Ethereum smart contract anchor: Output: **"INTEGRITY VERIFIED: Match"**.
-3. Click **"Simulate DB Tamper"** (simulates a rogue admin altering the prescription directly in SQLite without updating the blockchain).
-4. Re-run verification: Output: **"CRITICAL WARNING: Tamper Detected! Computed hash does not match blockchain record!"**
+### Demo 4: Device Migration & Lost Device Reset (Req 6 & 7)
+1. Log in to an account on Device 1. Under **Device Hub**, click **Generate Device Transfer Hash** (`MIGRATE-XXXX-XXXX`).
+2. Open a separate browser or incognito window (representing Device 2). In the Sign In modal, open **Migrate** tab.
+3. Enter username, password, and the transfer hash. Device 2 is now bound!
+4. If a device is lost, submit a ticket under **Lost Device**. The admin clicks **Verify & Reset Device Lock**, restoring access.
 
 ---
 

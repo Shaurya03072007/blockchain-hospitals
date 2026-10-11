@@ -32,12 +32,17 @@ def generate_dataset(n_samples=2500, anomaly_ratio=0.08):
 
     # 1. NORMAL SAMPLES (Routine clinic & hospital shifts)
     # Most accesses during 08:00 - 19:00, Mon-Fri
+    hour_probs = np.array([
+        0.005, 0.005, 0.005, 0.005, 0.01, 0.02, 0.05, 0.08, # 00:00 - 07:00
+        0.10, 0.12, 0.12, 0.08, 0.08, 0.10, 0.10, 0.05,     # 08:00 - 15:00
+        0.03, 0.02, 0.01, 0.005, 0.005, 0.005, 0.005, 0.005 # 16:00 - 23:00
+    ], dtype=float)
+    hour_probs /= hour_probs.sum()
+
     normal_hours = np.random.choice(
         range(24),
         size=n_normal,
-        p=[0.005, 0.005, 0.005, 0.005, 0.01, 0.02, 0.05, 0.08, # 00:00 - 07:00
-           0.10, 0.12, 0.12, 0.08, 0.08, 0.10, 0.10, 0.05,     # 08:00 - 15:00
-           0.03, 0.02, 0.01, 0.005, 0.005, 0.005, 0.005, 0.005] # 16:00 - 23:00
+        p=hour_probs
     )
     normal_days = np.random.choice(range(7), size=n_normal, p=[0.18, 0.18, 0.18, 0.18, 0.16, 0.06, 0.06])
     normal_velocity = np.clip(np.random.poisson(lam=2.2, size=n_normal), 1, 6)

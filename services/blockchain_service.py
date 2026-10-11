@@ -101,14 +101,17 @@ class BlockchainService:
                 })
 
                 signed = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
-                tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+                raw_tx = getattr(signed, "rawTransaction", getattr(signed, "raw_transaction", None))
+                tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
                 receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=10)
+                block_number = receipt.blockNumber if hasattr(receipt, "blockNumber") else receipt["blockNumber"]
+                gas_used = receipt.gasUsed if hasattr(receipt, "gasUsed") else receipt["gasUsed"]
 
                 return {
                     "success": True,
                     "tx_hash": tx_hash.hex(),
-                    "block_number": receipt.blockNumber,
-                    "gas_used": receipt.gasUsed,
+                    "block_number": block_number,
+                    "gas_used": gas_used,
                     "on_chain": True
                 }
             except Exception as e:
@@ -144,13 +147,15 @@ class BlockchainService:
                 })
 
                 signed = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
-                tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+                raw_tx = getattr(signed, "rawTransaction", getattr(signed, "raw_transaction", None))
+                tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
                 receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=10)
+                block_number = receipt.blockNumber if hasattr(receipt, "blockNumber") else receipt["blockNumber"]
 
                 return {
                     "success": True,
                     "tx_hash": tx_hash.hex(),
-                    "block_number": receipt.blockNumber,
+                    "block_number": block_number,
                     "on_chain": True
                 }
             except Exception as e:
@@ -191,5 +196,55 @@ class BlockchainService:
             "test_hash": test_hash,
             "source": "Local Fallback"
         }
+
+    def grant_doctor_permission(self, patient_code: str, doctor_wallet: str) -> dict:
+        if self.is_connected() and self.contract and doctor_wallet:
+            try:
+                account = Account.from_key(self.private_key)
+                sender = account.address
+                nonce = self.w3.eth.get_transaction_count(sender)
+                tx = self.contract.functions.grantDoctorPermission(
+                    patient_code,
+                    Web3.to_checksum_address(doctor_wallet)
+                ).build_transaction({
+                    "chainId": self.chain_id,
+                    "from": sender,
+                    "nonce": nonce,
+                    "gas": 200000,
+                    "gasPrice": self.w3.eth.gas_price
+                })
+                signed = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
+                raw_tx = getattr(signed, "rawTransaction", getattr(signed, "raw_transaction", None))
+                tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
+                receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=10)
+                return {"success": True, "tx_hash": tx_hash.hex(), "on_chain": True}
+            except Exception as e:
+                print(f"[!] grant_doctor_permission error: {e}")
+        return {"success": True, "tx_hash": Web3.keccak(text=f"GRANT:{patient_code}:{doctor_wallet}").hex(), "on_chain": False}
+
+    def revoke_doctor_permission(self, patient_code: str, doctor_wallet: str) -> dict:
+        if self.is_connected() and self.contract and doctor_wallet:
+            try:
+                account = Account.from_key(self.private_key)
+                sender = account.address
+                nonce = self.w3.eth.get_transaction_count(sender)
+                tx = self.contract.functions.revokeDoctorPermission(
+                    patient_code,
+                    Web3.to_checksum_address(doctor_wallet)
+                ).build_transaction({
+                    "chainId": self.chain_id,
+                    "from": sender,
+                    "nonce": nonce,
+                    "gas": 200000,
+                    "gasPrice": self.w3.eth.gas_price
+                })
+                signed = self.w3.eth.account.sign_transaction(tx, private_key=self.private_key)
+                raw_tx = getattr(signed, "rawTransaction", getattr(signed, "raw_transaction", None))
+                tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
+                receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=10)
+                return {"success": True, "tx_hash": tx_hash.hex(), "on_chain": True}
+            except Exception as e:
+                print(f"[!] revoke_doctor_permission error: {e}")
+        return {"success": True, "tx_hash": Web3.keccak(text=f"REVOKE:{patient_code}:{doctor_wallet}").hex(), "on_chain": False}
 
 blockchain_service = BlockchainService()

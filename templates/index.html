@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MedChain Guard - Decentralized Healthcare Security System</title>
+  <meta name="description" content="Decentralized Healthcare Integrity, Device Hardware Binding, Patient Consent Governance, and Threat Monitoring." />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfeff',
+              100: '#cffafe',
+              500: '#06b6d4',
+              600: '#0891b2',
+              900: '#164e63',
+            },
+            dark: {
+              950: '#080c14',
+              900: '#0d131f',
+              850: '#111827',
+              800: '#1e293b',
+              700: '#334155',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #0d131f; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+
+    .glass-card { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+    .glass-nav { background: rgba(13, 19, 31, 0.96); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(51, 65, 85, 0.6); }
+    .glass-bottom { background: rgba(13, 19, 31, 0.95); backdrop-filter: blur(16px); border-top: 1px solid rgba(51, 65, 85, 0.6); }
+
+    /* Mobile active touch tap feedback */
+    button, a { -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body class="bg-dark-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-black pb-20 md:pb-6">
+
+  <!-- ======================================================== -->
+  <!-- TOP NAVIGATION BAR (RESPONSIVE FOR PHONE & DESKTOP) -->
+  <!-- ======================================================== -->
+  <header class="sticky top-0 z-40 glass-nav">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Brand Logo & Device Pill -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
+            <i data-lucide="shield-check" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-base sm:text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent truncate">
+                MedChain Guard
+              </span>
+            </div>
+            <!-- Hardware Device Identity Pill (Req 2 & 6) -->
+            <div class="flex items-center space-x-1.5 text-[10px] text-slate-400 font-mono">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              <span id="device-pill-label" class="text-cyan-400 truncate max-w-[140px] sm:max-w-none">Bound Device: DEV-Init</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Node Status & Hospital Info (Desktop / Tablet) -->
+        <div class="hidden lg:flex items-center space-x-3 text-xs">
+          <div class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-dark-900 border border-slate-800">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-slate-300 font-mono" id="node-info">Ganache :8545</span>
+            <span class="text-slate-500">•</span>
+            <span class="text-cyan-400 font-mono font-medium" id="block-height">Block #--</span>
+          </div>
+
+          <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-dark-900 border border-slate-800">
+            <i data-lucide="brain-circuit" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span class="text-slate-300">IsoForest ML Active</span>
+          </div>
+        </div>
+
+        <!-- Top Right Actions: User Profile or Sign In -->
+        <div class="flex items-center space-x-2">
+          
+          <!-- Hospital Switcher (Req 4) -->
+          <div id="hosp-pill" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono text-cyan-400">
+            <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+            <span id="active-hospital-badge" class="font-bold">HOSP-01</span>
+          </div>
+
+          <!-- Logged In State Controls -->
+          <div id="auth-logged-in-controls" class="hidden flex items-center space-x-2">
+            <!-- Device Migration Hub Button (Req 6) -->
+            <button onclick="openDeviceHubModal()" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition-all" title="Manage Device & Transfer Hash">
+              <i data-lucide="smartphone" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span class="hidden sm:inline">Device</span>
+            </button>
+
+            <!-- User Badge & Logout -->
+            <div class="flex items-center space-x-1.5 pl-1.5 border-l border-slate-800">
+              <div class="text-right hidden sm:block">
+                <div id="header-user-name" class="text-xs font-bold text-white truncate max-w-[120px]">User</div>
+                <div id="header-user-role" class="text-[10px] text-cyan-400 font-mono uppercase">role</div>
+              </div>
+              <button onclick="logoutSession()" class="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs transition-colors" title="Logout">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Logged Out State Controls -->
+          <div id="auth-logged-out-controls" class="flex items-center space-x-2">
+            <button onclick="openAuthModal('signin')" class="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-xs shadow-md shadow-cyan-500/20 transition-all flex items-center space-x-1.5">
+              <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
+              <span>Sign In</span>
+            </button>
+            <button onclick="openAuthModal('register')" class="hidden sm:flex px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-all items-center space-x-1.5">
+              <i data-lucide="user-plus" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span>Register</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- MAIN CONTAINER -->
+  <!-- ======================================================== -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+    <!-- DESKTOP / TABLET WORKSPACE TABS -->
+    <div class="hidden md:flex items-center justify-between border-b border-slate-800 pb-3 mb-6">
+      <div class="flex space-x-2 overflow-x-auto">
+        <button onclick="setActiveTab('clinical')" id="tab-btn-clinical" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+          <i data-lucide="stethoscope" class="w-4 h-4"></i>
+          <span>Clinical EHR</span>
+        </button>
+        <button onclick="setActiveTab('consent')" id="tab-btn-consent" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-transparent">
+          <i data-lucide="handshake" class="w-4 h-4 text-emerald-400"></i>
+          <span>Patient Consent</span>
+          <span id="consent-badge" class="hidden px-1.5 py-0.2 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 rounded-full">0</span>
+        </button>
+        <button onclick="setActiveTab('cross-hospital')" id="tab-btn-cross-hospital" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-transparent">
+          <i data-lucide="network" class="w-4 h-4 text-indigo-400"></i>
+          <span>2nd Hospital Mesh</span>
+          <span id="cross-badge" class="hidden px-1.5 py-0.2 text-[10px] font-bold bg-indigo-500/20 text-indigo-400 rounded-full">0</span>
+        </button>
+        <button onclick="setActiveTab('approvals')" id="tab-btn-approvals" class="tab-btn hidden flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-transparent">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+          <span>Admin Approvals</span>
+          <span id="approvals-badge" class="px-1.5 py-0.2 text-[10px] font-bold bg-amber-500/20 text-amber-400 rounded-full">0</span>
+        </button>
+        <button onclick="setActiveTab('blockchain')" id="tab-btn-blockchain" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-transparent">
+          <i data-lucide="blocks" class="w-4 h-4"></i>
+          <span>Blockchain Ledger</span>
+        </button>
+        <button onclick="setActiveTab('threat-monitor')" id="tab-btn-threat-monitor" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-transparent">
+          <i data-lucide="activity" class="w-4 h-4 text-rose-400"></i>
+          <span>ML Threats</span>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="refreshAllData()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Sync Telemetry">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- PENDING APPROVAL BANNER (WHEN USER LOGGED IN BUT IN PENDING STATE) -->
+    <div id="pending-alert-banner" class="hidden p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-300 mb-6 flex items-start space-x-3">
+      <i data-lucide="clock" class="w-5 h-5 shrink-0 text-amber-400 mt-0.5"></i>
+      <div>
+        <div class="font-bold text-sm">Account Registration Pending Approval on Blockchain</div>
+        <div class="text-xs text-amber-200/80 mt-1">
+          Your account has been registered from your device, but is currently in PENDING state awaiting Administrator cryptographic verification. You cannot access clinical blocks until approved.
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: CLINICAL EHR & PATIENT RECORDS -->
+    <!-- ======================================================== -->
+    <div id="tab-clinical" class="tab-content space-y-6">
+
+      <!-- Patient Header -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
+          <h2 class="text-xs sm:text-sm font-semibold text-slate-300 uppercase tracking-wider">Clinical Patient Registry</h2>
+          <span id="patients-count-badge" class="px-2 py-0.2 rounded-full text-xs font-mono bg-dark-900 border border-slate-800 text-slate-400">0 records</span>
+        </div>
+      </div>
+
+      <!-- Responsive Patient Selector Cards -->
+      <div id="patients-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Selected Patient Medical Chart Card -->
+      <div id="patient-chart-card" class="rounded-2xl glass-card border border-slate-800 p-4 sm:p-6 space-y-5">
+        
+        <!-- Chart Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-base">
+              <span id="chart-avatar">P</span>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 id="chart-patient-name" class="text-base sm:text-lg font-bold text-white">Select a Patient</h3>
+                <span id="chart-origin-hosp-badge" class="px-2 py-0.5 text-[10px] font-mono bg-dark-900 text-slate-400 border border-slate-700 rounded-md">HOSP-01</span>
+              </div>
+              <div class="text-xs text-slate-400 font-mono mt-0.5">
+                Code: <span id="chart-patient-code" class="text-cyan-400">--</span> • DOB: <span id="chart-patient-dob">--</span> • Blood: <span id="chart-patient-blood">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Consent Status / Action Buttons -->
+          <div id="chart-action-bar" class="flex flex-wrap items-center gap-2">
+            <!-- Doctor Request Button (Req 3) -->
+            <button id="btn-request-doctor-consent" onclick="openRequestConsentModal()" class="hidden px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-black font-semibold text-xs shadow-md shadow-cyan-500/20 flex items-center space-x-1.5">
+              <i data-lucide="handshake" class="w-3.5 h-3.5"></i>
+              <span>Request Patient Consent</span>
+            </button>
+            <!-- 2nd Hospital Request Button (Req 4) -->
+            <button id="btn-request-cross-hosp" onclick="openRequestCrossModal()" class="hidden px-3 py-1.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 border border-indigo-700 text-indigo-300 text-xs font-medium flex items-center space-x-1.5">
+              <i data-lucide="network" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <span>Request 2nd Hosp Access</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- LOCKED ACCESS BANNER (REQ 3: DOCTOR HAS NO CONSENT) -->
+        <div id="consent-locked-banner" class="hidden p-6 rounded-2xl bg-dark-900/90 border border-dashed border-rose-500/40 text-center space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
+            <i data-lucide="lock" class="w-6 h-6"></i>
+          </div>
+          <div class="max-w-md mx-auto">
+            <h4 class="text-sm font-bold text-white">Medical History Protected by Patient Consent</h4>
+            <p class="text-xs text-slate-400 mt-1">
+              Per Smart Contract governance, physicians cannot view medical history, diagnoses, or prescriptions until the patient explicitly approves access from their device.
+            </p>
+          </div>
+          <button onclick="openRequestConsentModal()" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs inline-flex items-center space-x-2">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Send Permission Request to Patient</span>
+          </button>
+        </div>
+
+        <!-- CLINICAL DATA CONTENT (VISIBLE ONLY WHEN AUTHORIZED) -->
+        <div id="chart-data-content" class="space-y-4">
+
+          <!-- Integrity Status Badge -->
+          <div id="integrity-banner" class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div id="integrity-icon" class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <i data-lucide="check-check" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <div id="integrity-title" class="text-xs font-bold text-emerald-400">INTEGRITY VERIFIED: Blockchain Match</div>
+                <div class="text-[11px] text-slate-400 font-mono">
+                  SHA-256: <span id="chart-hash-short" class="text-cyan-400">--</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="verifyRecordIntegrity()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700">
+              Verify On-Chain
+            </button>
+          </div>
+
+          <!-- Clinical Fields Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3.5 rounded-xl bg-dark-900 border border-slate-800 space-y-1">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Current Diagnosis</div>
+              <div id="chart-diagnosis" class="text-xs sm:text-sm font-medium text-white">--</div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-dark-900 border border-slate-800 space-y-1">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Prescriptions</div>
+              <div id="chart-prescriptions" class="text-xs sm:text-sm font-medium text-emerald-300 font-mono">--</div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-dark-900 border border-slate-800 space-y-1">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Allergies & Contraindications</div>
+              <div id="chart-allergies" class="text-xs sm:text-sm font-medium text-rose-300">--</div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-dark-900 border border-slate-800 space-y-1">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Medical History</div>
+              <div id="chart-history" class="text-xs sm:text-sm font-medium text-slate-200">--</div>
+            </div>
+
+            <div class="col-span-full p-3.5 rounded-xl bg-dark-900 border border-slate-800 space-y-1">
+              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Attending Physician Notes</div>
+              <div id="chart-notes" class="text-xs sm:text-sm font-medium text-slate-300 italic">--</div>
+            </div>
+          </div>
+
+          <!-- Tamper Testing Controls -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+            <span class="text-[11px] text-slate-500 font-mono">Academic Security Controls:</span>
+            <div class="flex items-center space-x-2">
+              <button onclick="simulateTamper()" class="px-2.5 py-1 rounded-lg bg-rose-950/40 hover:bg-rose-900/40 text-rose-300 border border-rose-800 text-xs">
+                Simulate Tamper
+              </button>
+              <button onclick="restoreRecord()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs">
+                Restore Clean Record
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: PATIENT CONSENT & ACCESS REQUESTS (REQ 3) -->
+    <!-- ======================================================== -->
+    <div id="tab-consent" class="tab-content hidden space-y-6">
+
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+            <i data-lucide="handshake" class="w-5 h-5 text-emerald-400"></i>
+            <span>Patient Consent & Access Control</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Cryptographic consent rules. Physicians cannot view medical history without direct patient approval.
+          </p>
+        </div>
+      </div>
+
+      <!-- Pending Doctor Access Requests (Visible to Patient) -->
+      <div class="rounded-2xl glass-card border border-slate-800 p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Pending Doctor Consent Requests</h3>
+          </div>
+          <span id="pending-consent-count" class="text-xs font-mono text-amber-400">0 requests</span>
+        </div>
+
+        <div id="pending-consent-list" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Active Physician Permissions -->
+      <div class="rounded-2xl glass-card border border-slate-800 p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Currently Authorized Physicians</h3>
+          </div>
+          <span id="active-consent-count" class="text-xs font-mono text-emerald-400">0 authorized</span>
+        </div>
+
+        <div id="active-consent-list" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: 2ND HOSPITAL DUAL GOVERNANCE (REQ 4) -->
+    <!-- ======================================================== -->
+    <div id="tab-cross-hospital" class="tab-content hidden space-y-6">
+
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+            <i data-lucide="network" class="w-5 h-5 text-indigo-400"></i>
+            <span>Inter-Hospital (2nd Hospital) Governance</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Dual Approval Required: Both Patient and Admin must approve. Patient has absolute right to reject. If Admin rejects, reason is recorded in block.
+          </p>
+        </div>
+      </div>
+
+      <!-- Cross Hospital Requests List -->
+      <div class="rounded-2xl glass-card border border-slate-800 p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Inter-Hospital Requests Queue</h3>
+          <span id="cross-requests-count" class="text-xs font-mono text-indigo-400">0 requests</span>
+        </div>
+
+        <div id="cross-requests-list" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: ADMIN APPROVALS QUEUE (REQ 1 & 7) -->
+    <!-- ======================================================== -->
+    <div id="tab-approvals" class="tab-content hidden space-y-6">
+
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+          <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400"></i>
+          <span>Administrator Cryptographic Approvals</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Admin cannot create users. Admin can only approve self-registered accounts and lost-device recovery tickets.
+        </p>
+      </div>
+
+      <!-- Pending Self-Registrations Queue (Req 1) -->
+      <div class="rounded-2xl glass-card border border-slate-800 p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Pending User Self-Registrations</h3>
+          </div>
+          <span id="pending-reg-count" class="text-xs font-mono text-amber-400">0 pending</span>
+        </div>
+        <p class="text-xs text-slate-400">
+          Rule: Administrator can ONLY approve registrations. If not approved, user stays in pending. Administrator cannot deny them.
+        </p>
+
+        <div id="pending-reg-list" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Lost Device Recovery Queue (Req 7) -->
+      <div class="rounded-2xl glass-card border border-slate-800 p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Lost Device Recovery Tickets</h3>
+          </div>
+          <span id="pending-recovery-count" class="text-xs font-mono text-cyan-400">0 pending</span>
+        </div>
+        <p class="text-xs text-slate-400">
+          When approved, user's previous hardware lock is cleared on the blockchain, allowing them to bind their new phone.
+        </p>
+
+        <div id="pending-recovery-list" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 5: BLOCKCHAIN LEDGER & AUDIT TRAIL -->
+    <!-- ======================================================== -->
+    <div id="tab-blockchain" class="tab-content hidden space-y-6">
+
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+            <i data-lucide="blocks" class="w-5 h-5 text-cyan-400"></i>
+            <span>Immutable Blockchain Ledger</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Audit trail anchored with SHA-256 and Smart Contract transaction receipts.
+          </p>
+        </div>
+      </div>
+
+      <div class="rounded-2xl glass-card border border-slate-800 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-dark-900 border-b border-slate-800 text-slate-400 font-mono">
+              <tr>
+                <th class="p-3">Timestamp</th>
+                <th class="p-3">Actor</th>
+                <th class="p-3">Action Type</th>
+                <th class="p-3">Target</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Blockchain Tx</th>
+                <th class="p-3">Anomaly</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body" class="divide-y divide-slate-800/60 font-mono">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 6: ML THREAT MONITOR -->
+    <!-- ======================================================== -->
+    <div id="tab-threat-monitor" class="tab-content hidden space-y-6">
+
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+          <i data-lucide="activity" class="w-5 h-5 text-rose-400"></i>
+          <span>ML Threat Monitor (Isolation Forest)</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">
+          Detects abnormal clinical access velocity, scraper bots, and credential anomalies.
+        </p>
+      </div>
+
+      <div class="rounded-2xl glass-card border border-slate-800 p-4 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Active Security Alerts</h3>
+          <button onclick="injectScraperDemo()" class="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 text-xs font-semibold">
+            Simulate Scraper Attack
+          </button>
+        </div>
+
+        <div id="alerts-stream-container" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MOBILE BOTTOM NAVIGATION BAR (OUR MAIN TARGET: PHONES) -->
+  <!-- ======================================================== -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-bottom px-2 py-1.5 flex items-center justify-around text-[10px]">
+    <button onclick="setActiveTab('clinical')" id="mob-tab-clinical" class="flex flex-col items-center p-1.5 text-cyan-400">
+      <i data-lucide="stethoscope" class="w-5 h-5"></i>
+      <span class="mt-0.5 font-medium">EHR</span>
+    </button>
+    <button onclick="setActiveTab('consent')" id="mob-tab-consent" class="flex flex-col items-center p-1.5 text-slate-400">
+      <i data-lucide="handshake" class="w-5 h-5"></i>
+      <span class="mt-0.5 font-medium">Consent</span>
+    </button>
+    <button onclick="setActiveTab('cross-hospital')" id="mob-tab-cross-hospital" class="flex flex-col items-center p-1.5 text-slate-400">
+      <i data-lucide="network" class="w-5 h-5"></i>
+      <span class="mt-0.5 font-medium">2nd Hosp</span>
+    </button>
+    <button onclick="setActiveTab('approvals')" id="mob-tab-approvals" class="hidden flex flex-col items-center p-1.5 text-slate-400">
+      <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400"></i>
+      <span class="mt-0.5 font-medium">Approvals</span>
+    </button>
+    <button onclick="setActiveTab('blockchain')" id="mob-tab-blockchain" class="flex flex-col items-center p-1.5 text-slate-400">
+      <i data-lucide="blocks" class="w-5 h-5"></i>
+      <span class="mt-0.5 font-medium">Ledger</span>
+    </button>
+    <button onclick="openDeviceHubModal()" class="flex flex-col items-center p-1.5 text-slate-400">
+      <i data-lucide="smartphone" class="w-5 h-5"></i>
+      <span class="mt-0.5 font-medium">Device</span>
+    </button>
+  </nav>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: AUTHENTICATION PORTAL (SIGN IN / REGISTER / RECOVERY) -->
+  <!-- ======================================================== -->
+  <div id="modal-auth" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
+    <div class="w-full sm:max-w-md bg-dark-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 space-y-5 max-h-[92vh] overflow-y-auto shadow-2xl">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="shield" class="w-5 h-5 text-cyan-400"></i>
+          <h3 id="auth-modal-title" class="font-bold text-base text-white">MedChain Identity Portal</h3>
+        </div>
+        <button onclick="closeAuthModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Auth Mode Tabs -->
+      <div class="flex rounded-xl bg-dark-950 p-1 border border-slate-800 text-xs">
+        <button onclick="setAuthTab('signin')" id="auth-subtab-signin" class="flex-1 py-1.5 rounded-lg font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+          Sign In
+        </button>
+        <button onclick="setAuthTab('register')" id="auth-subtab-register" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white">
+          Self-Register
+        </button>
+        <button onclick="setAuthTab('migrate')" id="auth-subtab-migrate" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white">
+          Migrate
+        </button>
+        <button onclick="setAuthTab('recovery')" id="auth-subtab-recovery" class="flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white">
+          Lost Device
+        </button>
+      </div>
+
+      <!-- Sub-Tab 1: SIGN IN -->
+      <form id="form-auth-signin" onsubmit="handleSignIn(event)" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Username</label>
+          <input type="text" id="signin-username" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs focus:border-cyan-500 outline-none" placeholder="e.g. doctor1, patient1, admin" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Password</label>
+          <input type="password" id="signin-password" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs focus:border-cyan-500 outline-none" placeholder="••••••••" />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center space-x-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>Sign In to Registered Device</span>
+        </button>
+      </form>
+
+      <!-- Sub-Tab 2: SELF-REGISTER (REQ 1 & 2) -->
+      <form id="form-auth-register" onsubmit="handleRegister(event)" class="hidden space-y-3 text-xs">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Select Identity Role</label>
+          <select id="reg-role" onchange="toggleRegPatientFields()" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none">
+            <option value="doctor">Doctor / Attending Physician</option>
+            <option value="patient" selected>Patient (Personal Health Record)</option>
+            <option value="security_officer">Staff / Security Officer</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Full Name</label>
+            <input type="text" id="reg-fullname" required class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none" placeholder="e.g. Johnathan Doe" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Username</label>
+            <input type="text" id="reg-username" required class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none" placeholder="e.g. john_doe" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Email</label>
+            <input type="email" id="reg-email" required class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none" placeholder="user@gmail.com" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Password</label>
+            <input type="password" id="reg-password" required class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none" placeholder="••••••••" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Hospital Node</label>
+          <select id="reg-hospital" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none">
+            <option value="HOSP-01">Hospital 1 (Metropolitan General)</option>
+            <option value="HOSP-02">Hospital 2 (St. Jude Regional)</option>
+          </select>
+        </div>
+
+        <!-- Extra Patient Demographic Fields (Hidden for Doctors) -->
+        <div id="reg-patient-fields" class="space-y-2 border-t border-slate-800 pt-2">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Date of Birth</label>
+              <input type="date" id="reg-dob" value="1992-05-15" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-1">Blood Group</label>
+              <select id="reg-blood" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none">
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="AB+">AB+</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Medical History / Allergies</label>
+            <input type="text" id="reg-history" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white outline-none" placeholder="e.g. Mild Asthma, Penicillin allergy" />
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center space-x-2 mt-2">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
+          <span>Submit Registration to Blockchain</span>
+        </button>
+      </form>
+
+      <!-- Sub-Tab 3: MIGRATE TO NEW DEVICE (REQ 6) -->
+      <form id="form-auth-migrate" onsubmit="handleMigrateDevice(event)" class="hidden space-y-4 text-xs">
+        <div class="p-3 rounded-xl bg-cyan-950/40 border border-cyan-800/40 text-cyan-300 text-[11px]">
+          Enter the specific hash code generated on your old device to bind your account to this new phone.
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Username</label>
+          <input type="text" id="migrate-username" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs outline-none" placeholder="Username" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Password</label>
+          <input type="password" id="migrate-password" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs outline-none" placeholder="••••••••" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Device Transfer Hash Code</label>
+          <input type="text" id="migrate-hash" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-cyan-700/60 font-mono text-cyan-400 text-xs outline-none uppercase" placeholder="MIGRATE-XXXX-XXXX" />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center space-x-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span>Import & Bind This Device</span>
+        </button>
+      </form>
+
+      <!-- Sub-Tab 4: LOST DEVICE RECOVERY (REQ 7) -->
+      <form id="form-auth-recovery" onsubmit="handleLostDeviceRecovery(event)" class="hidden space-y-4 text-xs">
+        <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-300 text-[11px]">
+          Lost your registered phone? Submit your Full Name and Patient ID / Username. The Administrator will verify your identity and approve the reset.
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Full Legal Name</label>
+          <input type="text" id="rec-fullname" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs outline-none" placeholder="e.g. Johnathan Doe" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Patient ID or Username</label>
+          <input type="text" id="rec-identifier" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs outline-none" placeholder="e.g. P-1001 or patient1" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Reason for Reset</label>
+          <input type="text" id="rec-reason" required class="w-full px-3 py-2.5 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs outline-none" placeholder="e.g. Previous phone lost / damaged" />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-2">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          <span>Submit Recovery Request to Admin</span>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: DEVICE MANAGEMENT & TRANSFER HASH (REQ 6) -->
+  <!-- ======================================================== -->
+  <div id="modal-device-hub" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
+    <div class="w-full sm:max-w-md bg-dark-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="smartphone" class="w-5 h-5 text-cyan-400"></i>
+          <h3 class="font-bold text-base text-white">Hardware Device Hub</h3>
+        </div>
+        <button onclick="closeDeviceHubModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 rounded-xl bg-dark-950 border border-slate-800 space-y-2">
+        <div class="text-[11px] text-slate-400 uppercase font-mono">Current Device Fingerprint</div>
+        <div id="hub-device-id" class="text-xs font-mono text-cyan-400 break-all select-all">--</div>
+        <div class="text-[10px] text-emerald-400 flex items-center space-x-1">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>Active hardware node bound to this account</span>
+        </div>
+      </div>
+
+      <!-- Migration Token Generator (Req 6) -->
+      <div class="p-4 rounded-xl bg-dark-950 border border-slate-800 space-y-3">
+        <div class="text-xs font-bold text-white flex items-center space-x-1.5">
+          <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i>
+          <span>Switching to a New Phone / Device?</span>
+        </div>
+        <p class="text-xs text-slate-400">
+          Generate a one-time cryptographic transfer hash on this machine. Entering it on your new phone transfers your credentials and binds the new device.
+        </p>
+
+        <button onclick="generateMigrationHash()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-800/60 font-semibold text-xs transition-colors flex items-center justify-center space-x-2">
+          <i data-lucide="hash" class="w-4 h-4"></i>
+          <span>Generate Device Transfer Hash</span>
+        </button>
+
+        <div id="migration-hash-display" class="hidden p-3 rounded-xl bg-cyan-950/60 border border-cyan-500/50 space-y-2">
+          <div class="text-[10px] text-slate-400 uppercase font-mono">Your Migration Hash Code (Valid 24h):</div>
+          <div class="flex items-center justify-between">
+            <span id="migration-hash-code" class="text-sm font-mono font-bold text-cyan-300 select-all">--</span>
+            <button onclick="copyMigrationHash()" class="px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 text-xs">
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: DOCTOR REQUEST CONSENT (REQ 3) -->
+  <!-- ======================================================== -->
+  <div id="modal-request-consent" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
+    <div class="w-full sm:max-w-md bg-dark-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="handshake" class="w-5 h-5 text-cyan-400"></i>
+          <h3 class="font-bold text-base text-white">Request History Consent</h3>
+        </div>
+        <button onclick="closeRequestConsentModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-300">
+        Submitting this request alerts the patient. The patient must grant permission on their device before you can access their medical history.
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Clinical Reason for Access</label>
+        <textarea id="doctor-consent-reason" rows="3" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs outline-none" placeholder="e.g. Cardiology consultation and evaluation..."></textarea>
+      </div>
+
+      <button onclick="submitDoctorConsentRequest()" class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs shadow-md shadow-cyan-500/20">
+        Send Consent Request
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: 2ND HOSPITAL REQUEST (REQ 4) -->
+  <!-- ======================================================== -->
+  <div id="modal-request-cross" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
+    <div class="w-full sm:max-w-md bg-dark-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="network" class="w-5 h-5 text-indigo-400"></i>
+          <h3 class="font-bold text-base text-white">Cross-Hospital Access Request</h3>
+        </div>
+        <button onclick="closeRequestCrossModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-300">
+        Requesting transfer from Hospital 2 requires DUAL approval by both the Patient and the Administrator.
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Transfer Consultation Reason</label>
+        <textarea id="cross-request-reason" rows="3" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-white text-xs outline-none" placeholder="e.g. Specialist oncology consultation at Hospital 2"></textarea>
+      </div>
+
+      <button onclick="submitCrossHospitalRequest()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/20">
+        Submit Dual-Approval Request
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: ADMIN REJECTION REASON (REQ 4: MANDATORY IN BLOCK) -->
+  <!-- ======================================================== -->
+  <div id="modal-admin-reject" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
+    <div class="w-full sm:max-w-md bg-dark-900 border border-rose-800/80 rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-rose-900/60 pb-3">
+        <div class="flex items-center space-x-2 text-rose-400">
+          <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+          <h3 class="font-bold text-base text-white">Admin Rejection Reason (Mandatory)</h3>
+        </div>
+        <button onclick="closeAdminRejectModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-rose-200">
+        Requirement: If the administrator rejects this request, the stated reason will be permanently anchored directly into the blockchain block for auditability.
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-400 mb-1">State Administrative Rejection Reason</label>
+        <textarea id="admin-reject-reason-input" rows="3" class="w-full px-3 py-2 rounded-xl bg-dark-950 border border-rose-800/60 text-white text-xs outline-none" placeholder="e.g. Unverified credentials or security policy violation..."></textarea>
+      </div>
+
+      <button onclick="confirmAdminReject()" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/30">
+        Anchor Rejection & Reason to Blockchain
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <!-- ======================================================== -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT LOGIC -->
+  <!-- ======================================================== -->
+  <script>
+    // System State
+    let currentUser = null;
+    let currentPatientCode = null;
+    let patientsList = [];
+    let pendingCrossRejectReqId = null;
+
+    // Initialize Device Hardware Fingerprint (Req 2 & 6)
+    function getOrCreateDeviceId() {
+      let devId = localStorage.getItem("medchain_device_uuid");
+      if (!devId) {
+        devId = "DEV-" + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Math.random().toString(36).substring(2, 10).toUpperCase());
+        localStorage.setItem("medchain_device_uuid", devId);
+      }
+      return devId;
+    }
+
+    const currentDeviceId = getOrCreateDeviceId();
+
+    // DOM Ready
+    window.addEventListener("DOMContentLoaded", async () => {
+      document.getElementById("device-pill-label").textContent = `Bound: ${currentDeviceId}`;
+      const hubLabel = document.getElementById("hub-device-id");
+      if (hubLabel) hubLabel.textContent = currentDeviceId;
+
+      lucide.createIcons();
+      await checkCurrentSession();
+      await refreshTelemetry();
+      await loadPatients();
+    });
+
+    // Toast Helper
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = `p-3 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-2 pointer-events-auto border transition-all duration-300 ${
+        type === 'success' ? 'bg-dark-900 border-emerald-500/50 text-emerald-300' : 'bg-dark-900 border-rose-500/50 text-rose-300'
+      }`;
+      toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-4 h-4 shrink-0"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Check Current Auth Session
+    async function checkCurrentSession() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          currentUser = data.user;
+          updateAuthUI(currentUser);
+        } else {
+          currentUser = null;
+          updateAuthUI(null);
+        }
+      } catch (e) {
+        console.warn("Session check error:", e);
+        updateAuthUI(null);
+      }
+    }
+
+    // Update UI based on session
+    function updateAuthUI(user) {
+      const loggedInDiv = document.getElementById("auth-logged-in-controls");
+      const loggedOutDiv = document.getElementById("auth-logged-out-controls");
+      const pendingBanner = document.getElementById("pending-alert-banner");
+      const approvalsTabBtn = document.getElementById("tab-btn-approvals");
+      const mobApprovalsBtn = document.getElementById("mob-tab-approvals");
+
+      if (user) {
+        loggedInDiv.classList.remove("hidden");
+        loggedOutDiv.classList.add("hidden");
+        document.getElementById("header-user-name").textContent = user.full_name || user.username;
+        document.getElementById("header-user-role").textContent = user.role;
+        document.getElementById("active-hospital-badge").textContent = user.hospital_id || 'HOSP-01';
+
+        // Check if pending
+        if (user.is_approved === false) {
+          pendingBanner.classList.remove("hidden");
+        } else {
+          pendingBanner.classList.add("hidden");
+        }
+
+        // Show Admin Approvals tab if Admin
+        if (user.role === 'admin') {
+          approvalsTabBtn.classList.remove("hidden");
+          mobApprovalsBtn.classList.remove("hidden");
+        } else {
+          approvalsTabBtn.classList.add("hidden");
+          mobApprovalsBtn.classList.add("hidden");
+        }
+      } else {
+        loggedInDiv.classList.add("hidden");
+        loggedOutDiv.classList.remove("hidden");
+        pendingBanner.classList.add("hidden");
+        approvalsTabBtn.classList.add("hidden");
+        mobApprovalsBtn.classList.add("hidden");
+      }
+      lucide.createIcons();
+    }
+
+    // Tabs Navigation
+    function setActiveTab(tabKey) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll(".tab-btn").forEach(el => {
+        el.className = "tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-transparent";
+      });
+
+      // Mobile bottom bar icons active states
+      document.querySelectorAll("nav button").forEach(el => el.className = "flex flex-col items-center p-1.5 text-slate-400");
+      const mobBtn = document.getElementById(`mob-tab-${tabKey}`);
+      if (mobBtn) mobBtn.className = "flex flex-col items-center p-1.5 text-cyan-400";
+
+      const targetContent = document.getElementById(`tab-${tabKey}`);
+      if (targetContent) targetContent.classList.remove("hidden");
+
+      const targetBtn = document.getElementById(`tab-btn-${tabKey}`);
+      if (targetBtn) {
+        targetBtn.className = "tab-btn flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-cyan-500/10 text-cyan-400 border border-cyan-500/30";
+      }
+
+      // Load specific tab data
+      if (tabKey === 'consent') loadConsentData();
+      if (tabKey === 'cross-hospital') loadCrossHospitalData();
+      if (tabKey === 'approvals') loadApprovalsData();
+      if (tabKey === 'blockchain' || tabKey === 'threat-monitor') loadAdminOverview();
+
+      lucide.createIcons();
+    }
+
+    // Refresh Telemetry
+    async function refreshTelemetry() {
+      try {
+        const res = await fetch("/api/blockchain/status");
+        const status = await res.json();
+        if (status.connected) {
+          document.getElementById("block-height").textContent = `Block #${status.block_number}`;
+        }
+      } catch (e) {
+        console.warn("Telemetry err:", e);
+      }
+    }
+
+    // Refresh All Data
+    async function refreshAllData() {
+      await refreshTelemetry();
+      await checkCurrentSession();
+      await loadPatients();
+      if (currentPatientCode) await loadPatientRecord(currentPatientCode);
+      await loadConsentData();
+      await loadCrossHospitalData();
+      await loadApprovalsData();
+      await loadAdminOverview();
+      showToast("System telemetry synchronized", "success");
+    }
+
+    // Load Patient List
+    async function loadPatients() {
+      try {
+        const res = await fetch("/api/patients");
+        if (!res.ok) {
+          // If unauthorized or error, show empty state
+          renderPatientsList([]);
+          return;
+        }
+        const data = await res.json();
+        patientsList = Array.isArray(data) ? data : [];
+        renderPatientsList(patientsList);
+      } catch (e) {
+        console.warn("Load patients err:", e);
+      }
+    }
+
+    function renderPatientsList(patients) {
+      const grid = document.getElementById("patients-grid");
+      const badge = document.getElementById("patients-count-badge");
+      badge.textContent = `${patients.length} records`;
+
+      if (patients.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full p-6 rounded-2xl glass-card border border-slate-800 text-center text-slate-400 text-xs">
+            No registered clinical patient records available on this hospital node.
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = "";
+      patients.forEach(p => {
+        const isSelected = p.patient_code === currentPatientCode;
+        const isAuth = p.is_authorized !== false;
+        const card = document.createElement("div");
+        card.className = `p-3.5 rounded-2xl glass-card cursor-pointer transition-all border ${
+          isSelected ? 'border-cyan-500 bg-cyan-950/20' : 'border-slate-800 hover:border-slate-700'
+        }`;
+        card.onclick = () => selectPatient(p.patient_code);
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-lg ${isAuth ? 'bg-cyan-500/20 text-cyan-400' : 'bg-rose-500/20 text-rose-400'} flex items-center justify-center font-bold text-xs">
+                ${p.blood_group || 'O+'}
+              </div>
+              <div>
+                <div class="font-bold text-xs sm:text-sm text-white">${p.name}</div>
+                <div class="text-[11px] font-mono text-slate-400">${p.patient_code} • ${p.hospital_id || 'HOSP-01'}</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${
+              isAuth ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'
+            }">
+              ${isAuth ? 'Consent Granted' : 'Restricted'}
+            </span>
+          </div>
+          <div class="mt-2 text-[11px] text-slate-400 truncate">
+            Diagnosis: <span class="text-slate-200">${p.current_diagnosis || 'Routine'}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Select first patient automatically if none selected
+      if (!currentPatientCode && patients.length > 0) {
+        selectPatient(patients[0].patient_code);
+      }
+    }
+
+    async function selectPatient(code) {
+      currentPatientCode = code;
+      await loadPatientRecord(code);
+    }
+
+    // Load Patient Detail (Req 3 RBAC Enforcement)
+    async function loadPatientRecord(patientCode) {
+      try {
+        const res = await fetch(`/api/patients/${patientCode}`);
+        const lockedBanner = document.getElementById("consent-locked-banner");
+        const dataContent = document.getElementById("chart-data-content");
+        const docBtn = document.getElementById("btn-request-doctor-consent");
+        const crossBtn = document.getElementById("btn-request-cross-hosp");
+
+        if (res.status === 403) {
+          // Consent restricted! Doctor must request permission
+          lockedBanner.classList.remove("hidden");
+          dataContent.classList.add("hidden");
+          docBtn.classList.remove("hidden");
+          crossBtn.classList.remove("hidden");
+
+          // Basic headers
+          const ptSummary = patientsList.find(x => x.patient_code === patientCode);
+          if (ptSummary) {
+            document.getElementById("chart-patient-name").textContent = ptSummary.name;
+            document.getElementById("chart-patient-code").textContent = ptSummary.patient_code;
+            document.getElementById("chart-patient-dob").textContent = ptSummary.dob || "--";
+            document.getElementById("chart-patient-blood").textContent = ptSummary.blood_group || "--";
+            document.getElementById("chart-avatar").textContent = (ptSummary.name || 'P')[0];
+          }
+          return;
+        }
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        lockedBanner.classList.add("hidden");
+        dataContent.classList.remove("hidden");
+        docBtn.classList.add("hidden");
+        crossBtn.classList.remove("hidden");
+
+        // Fill chart
+        document.getElementById("chart-patient-name").textContent = data.name;
+        document.getElementById("chart-patient-code").textContent = data.patient_code;
+        document.getElementById("chart-patient-dob").textContent = data.dob || "--";
+        document.getElementById("chart-patient-blood").textContent = data.blood_group || "--";
+        document.getElementById("chart-avatar").textContent = (data.name || 'P')[0];
+        document.getElementById("chart-origin-hosp-badge").textContent = data.hospital_id || 'HOSP-01';
+
+        document.getElementById("chart-diagnosis").textContent = data.current_diagnosis || "--";
+        document.getElementById("chart-prescriptions").textContent = data.prescriptions || "--";
+        document.getElementById("chart-allergies").textContent = data.allergies || "None";
+        document.getElementById("chart-history").textContent = data.medical_history || "--";
+        document.getElementById("chart-notes").textContent = data.doctor_notes || "--";
+
+        const hash = data.current_record_hash || "--";
+        document.getElementById("chart-hash-short").textContent = hash.length > 16 ? `${hash.slice(0, 10)}...${hash.slice(-8)}` : hash;
+
+      } catch (e) {
+        console.warn("Load patient record err:", e);
+      }
+    }
+
+    // Verify Record Integrity On-Chain
+    async function verifyRecordIntegrity() {
+      if (!currentPatientCode) return;
+      try {
+        const res = await fetch(`/api/patients/${currentPatientCode}/verify`, { method: "POST" });
+        const data = await res.json();
+        const isValid = data.is_integrity_valid;
+        const icon = document.getElementById("integrity-icon");
+        const title = document.getElementById("integrity-title");
+
+        if (isValid) {
+          title.textContent = "INTEGRITY VERIFIED: Recalculated SHA-256 matches blockchain anchor.";
+          title.className = "text-xs font-bold text-emerald-400";
+          icon.className = "w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center";
+          icon.innerHTML = '<i data-lucide="check-check" class="w-4 h-4"></i>';
+          showToast("Smart contract verification PASSED: Hash match confirmed", "success");
+        } else {
+          title.textContent = "CRITICAL ALERT: Data Tampered! Computed hash diverges from blockchain!";
+          title.className = "text-xs font-bold text-rose-400 animate-pulse";
+          icon.className = "w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center";
+          icon.innerHTML = '<i data-lucide="alert-octagon" class="w-4 h-4"></i>';
+          showToast("Data integrity violation detected!", "error");
+        }
+        lucide.createIcons();
+      } catch (e) {
+        console.error("Integrity check err:", e);
+      }
+    }
+
+    // Tamper Simulation Controls
+    async function simulateTamper() {
+      if (!currentPatientCode) return;
+      const res = await fetch("/api/demo/tamper", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patient_code: currentPatientCode })
+      });
+      const data = await res.json();
+      document.getElementById("chart-prescriptions").textContent = data.tampered_prescription;
+      showToast("Prescription tampered directly in SQLite. Run verification to test!", "error");
+      await verifyRecordIntegrity();
+    }
+
+    async function restoreRecord() {
+      if (!currentPatientCode) return;
+      await fetch("/api/demo/restore-tamper", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patient_code: currentPatientCode })
+      });
+      await loadPatientRecord(currentPatientCode);
+      showToast("Record restored to clean state.", "success");
+      await verifyRecordIntegrity();
+    }
+
+    // ========================================================
+    // REQ 3: CONSENT DATA HANDLING
+    // ========================================================
+    async function loadConsentData() {
+      if (!currentUser || currentUser.role !== 'patient') return;
+      try {
+        const res = await fetch("/api/patient/consent-requests");
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Pending
+        const pendingContainer = document.getElementById("pending-consent-list");
+        const pendingCount = document.getElementById("pending-consent-count");
+        pendingCount.textContent = `${data.pending_requests.length} requests`;
+
+        if (data.pending_requests.length === 0) {
+          pendingContainer.innerHTML = '<div class="text-xs text-slate-500 p-4 text-center">No pending doctor requests.</div>';
+        } else {
+          pendingContainer.innerHTML = "";
+          data.pending_requests.forEach(r => {
+            const card = document.createElement("div");
+            card.className = "p-3.5 rounded-xl bg-dark-950 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3";
+            card.innerHTML = `
+              <div>
+                <div class="font-bold text-xs text-white">${r.doctor_name} (${r.doctor_hospital || 'HOSP-01'})</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Reason: "${r.reason}"</div>
+                <div class="text-[10px] text-slate-500 font-mono mt-1">Requested at: ${r.created_at}</div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button onclick="approveConsent(${r.id})" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs">
+                  Grant Access
+                </button>
+                <button onclick="rejectConsent(${r.id})" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 text-xs font-semibold">
+                  Deny
+                </button>
+              </div>
+            `;
+            pendingContainer.appendChild(card);
+          });
+        }
+
+        // Active
+        const activeContainer = document.getElementById("active-consent-list");
+        const activeCount = document.getElementById("active-consent-count");
+        activeCount.textContent = `${data.active_permissions.length} authorized`;
+
+        if (data.active_permissions.length === 0) {
+          activeContainer.innerHTML = '<div class="text-xs text-slate-500 p-4 text-center">No physicians currently authorized.</div>';
+        } else {
+          activeContainer.innerHTML = "";
+          data.active_permissions.forEach(p => {
+            const card = document.createElement("div");
+            card.className = "p-3.5 rounded-xl bg-dark-950 border border-slate-800 flex items-center justify-between";
+            card.innerHTML = `
+              <div>
+                <div class="font-bold text-xs text-white">${p.doctor_name}</div>
+                <div class="text-[11px] text-slate-400 font-mono">${p.doctor_email} • ${p.hospital_id}</div>
+              </div>
+              <button onclick="revokeConsent(${p.doctor_id})" class="px-3 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs">
+                Revoke Access
+              </button>
+            `;
+            activeContainer.appendChild(card);
+          });
+        }
+
+      } catch (e) {
+        console.warn("Load consent err:", e);
+      }
+    }
+
+    async function approveConsent(reqId) {
+      try {
+        const res = await fetch(`/api/patient/consent/${reqId}/approve`, { method: "POST" });
+        const data = await res.json();
+        showToast(data.message, "success");
+        await loadConsentData();
+      } catch (e) {
+        console.error("Approve consent err:", e);
+      }
+    }
+
+    async function rejectConsent(reqId) {
+      try {
+        const res = await fetch(`/api/patient/consent/${reqId}/reject`, { method: "POST" });
+        const data = await res.json();
+        showToast(data.message, "success");
+        await loadConsentData();
+      } catch (e) {
+        console.error("Reject consent err:", e);
+      }
+    }
+
+    async function revokeConsent(docId) {
+      try {
+        const res = await fetch(`/api/patient/consent/${docId}/revoke`, { method: "POST" });
+        const data = await res.json();
+        showToast(data.message, "success");
+        await loadConsentData();
+      } catch (e) {
+        console.error("Revoke consent err:", e);
+      }
+    }
+
+    // Modal Helpers for Doctor Requesting Consent
+    function openRequestConsentModal() {
+      document.getElementById("modal-request-consent").classList.remove("hidden");
+    }
+
+    function closeRequestConsentModal() {
+      document.getElementById("modal-request-consent").classList.add("hidden");
+    }
+
+    async function submitDoctorConsentRequest() {
+      const reason = document.getElementById("doctor-consent-reason").value.trim();
+      if (!currentPatientCode) return;
+      try {
+        const res = await fetch("/api/permissions/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patient_code: currentPatientCode, reason })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(data.message, "success");
+          closeRequestConsentModal();
+        } else {
+          showToast(data.error || "Failed to submit consent request", "error");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // ========================================================
+    // REQ 4: 2ND HOSPITAL DUAL GOVERNANCE LOGIC
+    // ========================================================
+    async function loadCrossHospitalData() {
+      try {
+        const res = await fetch("/api/hospital-mesh/cross-requests");
+        if (!res.ok) return;
+        const requests = await res.json();
+        const container = document.getElementById("cross-requests-list");
+        document.getElementById("cross-requests-count").textContent = `${requests.length} requests`;
+
+        if (requests.length === 0) {
+          container.innerHTML = '<div class="text-xs text-slate-500 p-4 text-center">No inter-hospital transfer requests recorded.</div>';
+          return;
+        }
+
+        container.innerHTML = "";
+        requests.forEach(r => {
+          const card = document.createElement("div");
+          const isPatient = currentUser && currentUser.role === 'patient';
+          const isAdmin = currentUser && currentUser.role === 'admin';
+          const isOverallApproved = r.overall_status === 'APPROVED';
+          const isOverallRejected = r.overall_status === 'REJECTED';
+
+          card.className = "p-4 rounded-xl bg-dark-950 border border-slate-800 space-y-3";
+          card.innerHTML = `
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-xs text-white">Transfer Request: ${r.patient_code} (${r.patient_name})</span>
+                  <span class="px-2 py-0.2 rounded text-[10px] font-mono ${
+                    isOverallApproved ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                    (isOverallRejected ? 'bg-rose-950 text-rose-400 border border-rose-800' : 'bg-amber-950 text-amber-400 border border-amber-800')
+                  }">
+                    ${r.overall_status}
+                  </span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">
+                  Node Route: <span class="text-indigo-400">${r.requesting_hospital}</span> ➔ <span class="text-cyan-400">${r.target_hospital}</span> • Requester: ${r.doctor_name}
+                </div>
+                <div class="text-[11px] text-slate-300 italic mt-1">Reason: "${r.reason}"</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px] font-mono p-2.5 rounded-lg bg-dark-900 border border-slate-800">
+              <div>
+                Patient Approval: <span class="font-bold ${r.patient_status === 'APPROVED' ? 'text-emerald-400' : (r.patient_status === 'REJECTED' ? 'text-rose-400' : 'text-amber-400')}">${r.patient_status}</span>
+              </div>
+              <div>
+                Admin Approval: <span class="font-bold ${r.admin_status === 'APPROVED' ? 'text-emerald-400' : (r.admin_status === 'REJECTED' ? 'text-rose-400' : 'text-amber-400')}">${r.admin_status}</span>
+              </div>
+            </div>
+
+            ${r.admin_rejection_reason ? `
+              <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-900/60 text-xs text-rose-300">
+                <span class="font-bold">Blockchain Anchored Admin Reason:</span> "${r.admin_rejection_reason}"
+              </div>
+            ` : ''}
+
+            <!-- Action Buttons for Patient & Admin -->
+            <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-800/60">
+              ${isPatient && r.patient_status === 'PENDING' ? `
+                <button onclick="submitPatientCrossDecision(${r.id}, 'APPROVED')" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs">
+                  Patient Approve
+                </button>
+                <button onclick="submitPatientCrossDecision(${r.id}, 'REJECTED')" class="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 text-xs font-semibold">
+                  Patient Reject (Veto)
+                </button>
+              ` : ''}
+
+              ${isAdmin && r.admin_status === 'PENDING' ? `
+                <button onclick="submitAdminCrossDecision(${r.id}, 'APPROVED')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">
+                  Admin Approve
+                </button>
+                <button onclick="promptAdminRejectModal(${r.id})" class="px-3 py-1.5 rounded-lg bg-rose-950 text-rose-300 border border-rose-800 text-xs font-semibold">
+                  Admin Reject with Reason
+                </button>
+              ` : ''}
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (e) {
+        console.warn("Load cross hosp err:", e);
+      }
+    }
+
+    // Modal Helpers for 2nd Hospital Request
+    function openRequestCrossModal() {
+      document.getElementById("modal-request-cross").classList.remove("hidden");
+    }
+
+    function closeRequestCrossModal() {
+      document.getElementById("modal-request-cross").classList.add("hidden");
+    }
+
+    async function submitCrossHospitalRequest() {
+      const reason = document.getElementById("cross-request-reason").value.trim();
+      if (!currentPatientCode) return;
+      try {
+        const res = await fetch("/api/hospital-mesh/request-cross", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patient_code: currentPatientCode, reason, requesting_hospital: "HOSP-02" })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(data.message, "success");
+          closeRequestCrossModal();
+          await loadCrossHospitalData();
+        } else {
+          showToast(data.error || "Failed", "error");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Patient Decision on Cross Hospital
+    async function submitPatientCrossDecision(reqId, decision) {
+      try {
+        const res = await fetch(`/api/hospital-mesh/cross-requests/${reqId}/patient-decision`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ decision })
+        });
+        const data = await res.json();
+        showToast(data.message, decision === 'APPROVED' ? "success" : "error");
+        await loadCrossHospitalData();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Admin Decision on Cross Hospital
+    async function submitAdminCrossDecision(reqId, decision) {
+      try {
+        const res = await fetch(`/api/hospital-mesh/cross-requests/${reqId}/admin-decision`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ decision, reason: "" })
+        });
+        const data = await res.json();
+        showToast(data.message, "success");
+        await loadCrossHospitalData();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function promptAdminRejectModal(reqId) {
+      pendingCrossRejectReqId = reqId;
+      document.getElementById("admin-reject-reason-input").value = "";
+      document.getElementById("modal-admin-reject").classList.remove("hidden");
+    }
+
+    function closeAdminRejectModal() {
+      document.getElementById("modal-admin-reject").classList.add("hidden");
+      pendingCrossRejectReqId = null;
+    }
+
+    async function confirmAdminReject() {
+      const reason = document.getElementById("admin-reject-reason-input").value.trim();
+      if (!reason) {
+        alert("A rejection reason is MANDATORY for blockchain audit recording!");
+        return;
+      }
+      try {
+        const res = await fetch(`/api/hospital-mesh/cross-requests/${pendingCrossRejectReqId}/admin-decision`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ decision: "REJECTED", reason })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(data.message, "error");
+          closeAdminRejectModal();
+          await loadCrossHospitalData();
+        } else {
+          alert(data.error || "Error recording rejection");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // ========================================================
+    // REQ 1 & 7: ADMIN APPROVALS QUEUE
+    // ========================================================
+    async function loadApprovalsData() {
+      if (!currentUser || currentUser.role !== 'admin') return;
+      try {
+        let totalCount = 0;
+
+        // 1. Pending Self-Registrations (Req 1)
+        const resReg = await fetch("/api/admin/pending-users");
+        if (resReg.ok) {
+          const pendingUsers = await resReg.json();
+          totalCount += pendingUsers.length;
+          const regContainer = document.getElementById("pending-reg-list");
+          document.getElementById("pending-reg-count").textContent = `${pendingUsers.length} pending`;
+
+          if (pendingUsers.length === 0) {
+            regContainer.innerHTML = '<div class="text-xs text-slate-500 p-4 text-center">No pending user registrations.</div>';
+          } else {
+            regContainer.innerHTML = "";
+            pendingUsers.forEach(u => {
+              const card = document.createElement("div");
+              card.className = "p-3.5 rounded-xl bg-dark-950 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3";
+              card.innerHTML = `
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="font-bold text-xs text-white">${u.full_name} (${u.username})</span>
+                    <span class="px-2 py-0.2 rounded text-[10px] font-mono uppercase bg-dark-900 border border-slate-700 text-cyan-400">${u.role}</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-mono mt-0.5">${u.email} • ${u.hospital_id}</div>
+                  <div class="text-[10px] text-slate-500 font-mono mt-1">Submitted at: ${u.created_at}</div>
+                </div>
+                <button onclick="approveUserRegistration(${u.id}, this)" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-md shadow-emerald-500/20 disabled:opacity-50 transition-all flex items-center justify-center">
+                  Approve Registration
+                </button>
+              `;
+              regContainer.appendChild(card);
+            });
+          }
+        }
+
+        // 2. Lost Device Recovery Requests (Req 7)
+        const resRec = await fetch("/api/admin/device-recovery-requests");
+        if (resRec.ok) {
+          const recoveryList = await resRec.json();
+          totalCount += recoveryList.length;
+          const recContainer = document.getElementById("pending-recovery-list");
+          document.getElementById("pending-recovery-count").textContent = `${recoveryList.length} pending`;
+
+          if (recoveryList.length === 0) {
+            recContainer.innerHTML = '<div class="text-xs text-slate-500 p-4 text-center">No lost device recovery requests pending.</div>';
+          } else {
+            recContainer.innerHTML = "";
+            recoveryList.forEach(r => {
+              const card = document.createElement("div");
+              card.className = "p-3.5 rounded-xl bg-dark-950 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3";
+              card.innerHTML = `
+                <div>
+                  <div class="font-bold text-xs text-white">${r.full_name} (${r.identifier})</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">Reason: "${r.reason}"</div>
+                  <div class="text-[10px] text-slate-500 font-mono mt-1">Old Device: ${r.old_device || 'None'} • Requested: ${r.requested_at}</div>
+                </div>
+                <button onclick="approveDeviceRecovery(${r.id}, this)" class="px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs shadow-md shadow-cyan-500/20 disabled:opacity-50 transition-all flex items-center justify-center">
+                  Verify & Reset Device Lock
+                </button>
+              `;
+              recContainer.appendChild(card);
+            });
+          }
+        }
+
+        // Update badge
+        const badgeEl = document.getElementById("approvals-badge");
+        if (badgeEl) badgeEl.textContent = totalCount;
+
+      } catch (e) {
+        console.warn("Load approvals err:", e);
+      }
+    }
+
+    async function approveUserRegistration(userId, btnEl) {
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = `<span class="inline-flex items-center"><svg class="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>Enrolling on Chain...</span>`;
+      }
+      try {
+        const res = await fetch(`/api/admin/approve-user/${userId}`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(data.message || "User successfully approved on blockchain!", "success");
+          await loadApprovalsData();
+          await loadPatients();
+        } else {
+          if (res.status === 403) {
+            alert("Admin Access Required:\nYou must be logged in as an Administrator to approve registrations. Please sign in as admin.");
+            openAuthModal('signin');
+          } else {
+            alert("Approval Failed: " + (data.error || "Server error occurred."));
+          }
+        }
+      } catch (e) {
+        console.error("Approve registration error:", e);
+        alert("Network or connection error while approving registration: " + e.message);
+      } finally {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.textContent = "Approve Registration";
+        }
+      }
+    }
+
+    async function approveDeviceRecovery(reqId, btnEl) {
+      if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = `<span class="inline-flex items-center"><svg class="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>Resetting Lock...</span>`;
+      }
+      try {
+        const res = await fetch(`/api/admin/device-recovery/${reqId}/approve`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(data.message || "Device recovery approved!", "success");
+          await loadApprovalsData();
+        } else {
+          if (res.status === 403) {
+            alert("Admin Access Required:\nYou must be logged in as an Administrator to approve recovery. Please sign in as admin.");
+            openAuthModal('signin');
+          } else {
+            alert("Recovery Approval Failed: " + (data.error || "Server error occurred."));
+          }
+        }
+      } catch (e) {
+        console.error("Approve device recovery error:", e);
+        alert("Network or connection error while approving recovery: " + e.message);
+      } finally {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.textContent = "Verify & Reset Device Lock";
+        }
+      }
+    }
+
+    // ========================================================
+    // REQ 6 & 7: DEVICE MIGRATION & HUB
+    // ========================================================
+    function openDeviceHubModal() {
+      document.getElementById("modal-device-hub").classList.remove("hidden");
+    }
+
+    function closeDeviceHubModal() {
+      document.getElementById("modal-device-hub").classList.add("hidden");
+    }
+
+    async function generateMigrationHash() {
+      try {
+        const res = await fetch("/api/device/generate-transfer-hash", { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById("migration-hash-code").textContent = data.migration_hash;
+          document.getElementById("migration-hash-display").classList.remove("hidden");
+          showToast("Transfer Hash generated. Enter on your new device.", "success");
+        } else {
+          showToast(data.error || "Failed", "error");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function copyMigrationHash() {
+      const code = document.getElementById("migration-hash-code").textContent;
+      navigator.clipboard.writeText(code);
+      showToast("Transfer Hash copied to clipboard!", "success");
+    }
+
+    // ========================================================
+    // AUTH MODAL & FORM HANDLERS (REQ 1, 2, 6, 7)
+    // ========================================================
+    function openAuthModal(defaultTab = 'signin') {
+      document.getElementById("modal-auth").classList.remove("hidden");
+      setAuthTab(defaultTab);
+    }
+
+    function closeAuthModal() {
+      document.getElementById("modal-auth").classList.add("hidden");
+    }
+
+    function setAuthTab(tab) {
+      ['signin', 'register', 'migrate', 'recovery'].forEach(t => {
+        document.getElementById(`form-auth-${t}`).classList.add("hidden");
+        document.getElementById(`auth-subtab-${t}`).className = "flex-1 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white";
+      });
+
+      document.getElementById(`form-auth-${tab}`).classList.remove("hidden");
+      document.getElementById(`auth-subtab-${tab}`).className = "flex-1 py-1.5 rounded-lg font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
+      lucide.createIcons();
+    }
+
+    function toggleRegPatientFields() {
+      const role = document.getElementById("reg-role").value;
+      const ptFields = document.getElementById("reg-patient-fields");
+      if (role === 'patient') {
+        ptFields.classList.remove("hidden");
+      } else {
+        ptFields.classList.add("hidden");
+      }
+    }
+
+    // Handle Sign In (Req 1, 2 & 6: Enforces device lock & approval)
+    async function handleSignIn(e) {
+      e.preventDefault();
+      const username = document.getElementById("signin-username").value.trim();
+      const password = document.getElementById("signin-password").value.trim();
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username,
+            password,
+            device_fingerprint: currentDeviceId
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          currentUser = data.user;
+          updateAuthUI(currentUser);
+          closeAuthModal();
+          showToast(`Welcome, ${currentUser.full_name}!`, "success");
+          await refreshAllData();
+        } else {
+          if (data.is_pending) {
+            alert("Account Status: PENDING\n\nYour account has been registered but has not yet been approved by the Administrator on the blockchain. Please wait for approval.");
+          } else if (data.device_mismatch) {
+            alert("Device Mismatch Warning!\n\nThis account is locked to a different device (" + (data.registered_device || 'Old Phone') + ").\n\nIf you switched phones, click 'Migrate' tab with your transfer hash. If your old phone was lost, submit a 'Lost Device' recovery ticket.");
+          } else {
+            alert(data.error || "Sign in failed");
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Handle Self-Register (Req 1 & 2)
+    async function handleRegister(e) {
+      e.preventDefault();
+      const role = document.getElementById("reg-role").value;
+      const payload = {
+        role,
+        full_name: document.getElementById("reg-fullname").value.trim(),
+        username: document.getElementById("reg-username").value.trim(),
+        email: document.getElementById("reg-email").value.trim(),
+        password: document.getElementById("reg-password").value.trim(),
+        hospital_id: document.getElementById("reg-hospital").value,
+        device_fingerprint: currentDeviceId
+      };
+
+      if (role === 'patient') {
+        payload.dob = document.getElementById("reg-dob").value;
+        payload.blood_group = document.getElementById("reg-blood").value;
+        payload.medical_history = document.getElementById("reg-history").value.trim();
+      }
+
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Registration Submitted Successfully!\n\nYour account is in PENDING state awaiting Administrator cryptographic verification on the blockchain. Once approved, you can log in directly from this device.");
+          closeAuthModal();
+          await refreshAllData();
+        } else {
+          alert(data.error || "Registration failed");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Handle Device Migrate (Req 6)
+    async function handleMigrateDevice(e) {
+      e.preventDefault();
+      const payload = {
+        username: document.getElementById("migrate-username").value.trim(),
+        password: document.getElementById("migrate-password").value.trim(),
+        migration_hash: document.getElementById("migrate-hash").value.trim().toUpperCase(),
+        device_fingerprint: currentDeviceId
+      };
+
+      try {
+        const res = await fetch("/api/device/migrate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          currentUser = data.user;
+          updateAuthUI(currentUser);
+          closeAuthModal();
+          showToast(data.message, "success");
+          await refreshAllData();
+        } else {
+          alert(data.error || "Migration failed");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Handle Lost Device Recovery (Req 7)
+    async function handleLostDeviceRecovery(e) {
+      e.preventDefault();
+      const payload = {
+        full_name: document.getElementById("rec-fullname").value.trim(),
+        identifier: document.getElementById("rec-identifier").value.trim(),
+        reason: document.getElementById("rec-reason").value.trim()
+      };
+
+      try {
+        const res = await fetch("/api/device/recovery-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert("Recovery Ticket Submitted!\n\nThe Administrator has received your request and will verify your identity to clear the old device lock. You will then be able to log in and bind this new device.");
+          closeAuthModal();
+        } else {
+          alert(data.error || "Recovery submission failed");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Logout
+    async function logoutSession() {
+      await fetch("/api/auth/logout", { method: "POST" });
+      currentUser = null;
+      updateAuthUI(null);
+      showToast("Signed out successfully", "success");
+      await refreshAllData();
+    }
+
+    // Load Admin Overview & Ledger
+    async function loadAdminOverview() {
+      try {
+        const res = await fetch("/api/admin/overview");
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Ledger Table
+        const tbody = document.getElementById("audit-table-body");
+        if (tbody) {
+          if (!data.recent_logs || data.recent_logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">No access events recorded yet.</td></tr>';
+          } else {
+            tbody.innerHTML = "";
+            data.recent_logs.forEach(log => {
+              const tr = document.createElement("tr");
+              tr.className = log.status === 'DENIED' ? 'bg-rose-950/20 text-rose-300' : 'hover:bg-slate-800/40';
+              const txShort = log.blockchain_tx_hash ? `${log.blockchain_tx_hash.slice(0, 10)}...` : '0x...';
+              const isDenied = log.status === 'DENIED';
+
+              tr.innerHTML = `
+                <td class="p-3 text-slate-400">${(log.timestamp || '').slice(11, 19)}</td>
+                <td class="p-3 font-semibold text-white">${log.username} (${log.user_role})</td>
+                <td class="p-3">${log.action}</td>
+                <td class="p-3 text-cyan-400">${log.target_patient_code || '--'}</td>
+                <td class="p-3">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                    isDenied ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                  }">
+                    ${log.status}
+                  </span>
+                </td>
+                <td class="p-3 font-mono text-cyan-400">${txShort}</td>
+                <td class="p-3 font-mono ${(log.ml_anomaly_score || 0) < 0 ? 'text-rose-400 font-bold' : 'text-slate-400'}">
+                  ${(log.ml_anomaly_score || 0).toFixed(2)}
+                </td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+        }
+
+        // Security Alerts
+        const alertsContainer = document.getElementById("alerts-stream-container");
+        if (alertsContainer) {
+          if (!data.recent_alerts || data.recent_alerts.length === 0) {
+            alertsContainer.innerHTML = '<div class="p-6 text-center text-slate-500 text-xs">No active security alerts recorded.</div>';
+          } else {
+            alertsContainer.innerHTML = "";
+            data.recent_alerts.forEach(alert => {
+              const div = document.createElement("div");
+              const isResolved = alert.is_resolved === 1;
+              div.className = `p-3.5 rounded-xl bg-dark-950 border border-slate-800 flex items-start justify-between gap-3 ${isResolved ? 'opacity-40' : ''}`;
+              div.innerHTML = `
+                <div class="flex items-start space-x-3">
+                  <div class="p-2 rounded-lg bg-rose-500/20 text-rose-400 mt-0.5 shrink-0">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs font-bold text-white">${alert.alert_type}</span>
+                      <span class="px-2 py-0.2 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">${alert.severity}</span>
+                      <span class="text-[10px] text-slate-500 font-mono">${(alert.timestamp || '').slice(11, 19)}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-1">${alert.description}</p>
+                  </div>
+                </div>
+                ${!isResolved ? `
+                  <button onclick="resolveAlert(${alert.id})" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 shrink-0">
+                    Ack
+                  </button>
+                ` : '<span class="text-[10px] text-slate-500 font-mono uppercase shrink-0">Resolved</span>'}
+              `;
+              alertsContainer.appendChild(div);
+            });
+            lucide.createIcons();
+          }
+        }
+
+      } catch (e) {
+        console.warn("Load admin overview err:", e);
+      }
+    }
+
+    async function resolveAlert(alertId) {
+      await fetch(`/api/alerts/${alertId}/resolve`, { method: "POST" });
+      await loadAdminOverview();
+    }
+
+    async function injectScraperDemo() {
+      const res = await fetch("/api/demo/inject-scraper", { method: "POST" });
+      const data = await res.json();
+      showToast("Scraper bot probe simulated and flagged by Isolation Forest!", "error");
+      await loadAdminOverview();
+    }
+  </script>
+</body>
+</html>
