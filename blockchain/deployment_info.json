@@ -3,10 +3,10 @@
   "rpc_url": "http://127.0.0.1:8545",
   "chain_id": 1337,
   "contract_name": "HealthcareAccess",
-  "contract_address": "0xFC628dd79137395F3C9744e33b1c5DE554D94882",
+  "contract_address": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
   "deployer_address": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
-  "block_number": 22,
-  "tx_hash": "0xedf0ef612cff637600eef2900f689d5d0f3091c504adad6c87dc4714d70bca41",
+  "block_number": 1,
+  "tx_hash": "0xc82ad2ccd48b4bb695644a3f08c09b952e93d4c5d930022ca060eb3a253650ab",
   "abi": [
     {
       "inputs": [],
