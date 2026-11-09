@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PatientChain, HospitalNode } from '../types';
 import { UserPlus, Building2, X } from 'lucide-react';
-import { sha256 } from '../utils/crypto';
+import { sha256, ALL_EHR_CATEGORIES } from '../utils/crypto';
 
 interface PatientRegistrationModalProps {
   isOpen: boolean;
@@ -44,6 +44,8 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
       if (h.id !== 'HOSP-01') {
         hospitalConsents[h.id] = {
           targetHospitalId: h.id,
+          patientStatus: 'PENDING',
+          adminStatus: 'PENDING',
           isApproved: false,
           grantedCategories: [],
           expiresAt: '',
@@ -55,19 +57,25 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
 
     const doctorGranularConsents: PatientChain['doctorGranularConsents'] = {};
     hospitals.forEach((h) => {
-      h.subNodes.forEach((sub) => {
+      h.subNodes.forEach((sub, idx) => {
+        // Authorize primary attending doctor at HOSP-01 by default so the new patient can immediately record clinical encounters
+        const isDefaultAttending = h.id === 'HOSP-01' && idx === 0;
         doctorGranularConsents[sub.id] = {
           doctorSubNodeId: sub.id,
           doctorName: sub.name,
           hospitalId: h.id,
-          grantedCategories: [],
-          isApproved: false,
+          grantedCategories: isDefaultAttending ? [...ALL_EHR_CATEGORIES] : [],
+          isApproved: isDefaultAttending,
           grantedAt: now,
         };
       });
     });
 
-    const syncedNodes = [deviceId, ...hospitals.map((h) => h.id), ...hospitals.flatMap((h) => h.subNodes.map((s) => s.id))];
+    const syncedNodes = [
+      deviceId,
+      ...hospitals.map((h) => h.id),
+      ...hospitals.flatMap((h) => h.subNodes.map((s) => s.id)),
+    ];
 
     const newChain: PatientChain = {
       patientId,
@@ -81,6 +89,8 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
       ehrRecords: [],
       hospitalConsents,
       doctorGranularConsents,
+      securityAlerts: [],
+      lostDeviceTickets: [],
       blocks: [
         {
           blockIndex: 0,
@@ -129,8 +139,10 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white"
+            aria-label="Close registration modal"
           >
             <X className="w-4 h-4" />
           </button>
@@ -138,10 +150,14 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs text-slate-400 block mb-1">Full Legal Name *</label>
+            <label htmlFor="reg-patient-name" className="text-xs text-slate-400 block mb-1">
+              Full Legal Name *
+            </label>
             <input
+              id="reg-patient-name"
               required
               type="text"
+              placeholder="e.g. Sophia Martinez"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
@@ -150,8 +166,11 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Age *</label>
+              <label htmlFor="reg-patient-age" className="text-xs text-slate-400 block mb-1">
+                Age *
+              </label>
               <input
+                id="reg-patient-age"
                 required
                 type="number"
                 min={0}
@@ -162,28 +181,38 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
               />
             </div>
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Gender *</label>
+              <label htmlFor="reg-patient-gender" className="text-xs text-slate-400 block mb-1">
+                Gender *
+              </label>
               <select
+                id="reg-patient-gender"
                 required
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
               >
-                <option value="" disabled>Select</option>
+                <option value="" disabled>
+                  Select
+                </option>
                 <option value="Female">Female</option>
                 <option value="Male">Male</option>
                 <option value="Other">Other</option>
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Blood Group *</label>
+              <label htmlFor="reg-patient-blood" className="text-xs text-slate-400 block mb-1">
+                Blood Group *
+              </label>
               <select
+                id="reg-patient-blood"
                 required
                 value={bloodGroup}
                 onChange={(e) => setBloodGroup(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
               >
-                <option value="" disabled>Select</option>
+                <option value="" disabled>
+                  Select
+                </option>
                 <option value="A+">A+</option>
                 <option value="A-">A-</option>
                 <option value="B+">B+</option>
@@ -197,10 +226,14 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 block mb-1">Contact Number / Identifier *</label>
+            <label htmlFor="reg-patient-contact" className="text-xs text-slate-400 block mb-1">
+              Contact Number / Identifier *
+            </label>
             <input
+              id="reg-patient-contact"
               required
               type="text"
+              placeholder="+1 (555) 234-5678"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
@@ -209,11 +242,14 @@ export const PatientRegistrationModal: React.FC<PatientRegistrationModalProps> =
 
           <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
             <div className="text-cyan-400 font-semibold flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5" />
+              <Building2 className="w-3.5 h-3.5 shrink-0" />
               <span>Hardware & Hospital Node Binding:</span>
             </div>
-            <div>• Permanent Primary Hardware ID: <span className="font-mono text-slate-200">{deviceId}</span></div>
-            <div>• Linked Hospital Nodes: {hospitals.map(h => h.name).join(' & ')}</div>
+            <div>
+              • Permanent Primary Hardware ID:{' '}
+              <span className="font-mono text-slate-200">{deviceId}</span>
+            </div>
+            <div>• Linked Hospital Nodes: {hospitals.map((h) => h.name).join(' & ')}</div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">

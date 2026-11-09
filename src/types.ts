@@ -21,7 +21,12 @@ export interface HospitalNode {
   subNodes: HospitalSubNode[];
 }
 
-export type EHRCategory = 'diagnoses' | 'prescriptions' | 'lab_reports' | 'clinical_notes' | 'surgical_history';
+export type EHRCategory =
+  | 'diagnoses'
+  | 'prescriptions'
+  | 'lab_reports'
+  | 'clinical_notes'
+  | 'surgical_history';
 
 export interface EHRRecordItem {
   id: string;
@@ -31,13 +36,21 @@ export interface EHRRecordItem {
   createdBy: string;
   title: string;
   content: string;
+  originalContent?: string;
+  isTampered?: boolean;
   timestamp: string;
-  dataHash: string; // SHA-256 of the record content
+  dataHash: string; // SHA-256 of the canonical record content
 }
+
+export type GovernanceDecisionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface InterHospitalConsent {
   targetHospitalId: string;
-  isApproved: boolean;
+  isApproved: boolean; // True only when BOTH patientStatus === 'APPROVED' and adminStatus === 'APPROVED'
+  patientStatus?: GovernanceDecisionStatus;
+  adminStatus?: GovernanceDecisionStatus;
+  adminRejectionReason?: string;
+  adminDecisionTimestamp?: string;
   grantedCategories: EHRCategory[];
   expiresAt: string;
   decisionTimestamp: string;
@@ -53,20 +66,35 @@ export interface DoctorGranularConsent {
   grantedAt: string;
 }
 
+export type BlockActionType =
+  | 'GENESIS_CHAIN_CREATED'
+  | 'DEVICE_PRIMARY_NODE_REGISTERED'
+  | 'DEVICE_PEER_SYNC_EXPORT'
+  | 'DEVICE_PEER_SYNC_IMPORT'
+  | 'DEVICE_MIGRATION_HASH_ISSUED'
+  | 'DEVICE_MIGRATION_TOKEN_GENERATED'
+  | 'DEVICE_MIGRATION_COMPLETED'
+  | 'DEVICE_RECOVERY_RESET_APPROVED'
+  | 'LOST_DEVICE_RECOVERY_REQUESTED'
+  | 'LOST_DEVICE_RECOVERY_APPROVED'
+  | 'HOSPITAL_DATA_COMMITTED'
+  | 'PATIENT_CONSENT_GRANTED'
+  | 'PATIENT_CONSENT_REVOKED'
+  | 'CROSS_HOSPITAL_ADMIN_APPROVED'
+  | 'CROSS_HOSPITAL_ADMIN_REJECTED'
+  | 'ADMIN_HOSPITAL_APPROVED'
+  | 'ADMIN_HOSPITAL_REJECTED'
+  | 'GRANULAR_STAFF_RULE_UPDATED'
+  | 'EHR_ACCESS_VERIFIED'
+  | 'UNAUTHORIZED_ACCESS_DENIED'
+  | 'UNAUTHORIZED_ACCESS_ATTEMPT'
+  | 'ML_ANOMALY_FLAGGED';
+
 export interface PatientChainBlock {
   blockIndex: number;
   patientId: string;
   timestamp: string;
-  actionType: 
-    | 'GENESIS_CHAIN_CREATED'
-    | 'DEVICE_PRIMARY_NODE_REGISTERED'
-    | 'DEVICE_PEER_SYNC_EXPORT'
-    | 'DEVICE_PEER_SYNC_IMPORT'
-    | 'HOSPITAL_DATA_COMMITTED'
-    | 'PATIENT_CONSENT_GRANTED'
-    | 'PATIENT_CONSENT_REVOKED'
-    | 'GRANULAR_STAFF_RULE_UPDATED'
-    | 'EHR_ACCESS_VERIFIED';
+  actionType: BlockActionType;
   originHospitalId: string;
   actorNodeId: string;
   actorName: string;
@@ -81,7 +109,26 @@ export interface PatientChainBlock {
     authorized?: boolean;
     reason?: string;
     deviceId?: string;
+    adminRejectionReason?: string;
+    mlRiskScore?: number;
+    migrationToken?: string;
   };
+}
+
+export interface SecurityAlertItem {
+  id: string;
+  timestamp: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  alertType: string;
+  actorNodeId?: string;
+  actorName: string;
+  hospitalId?: string;
+  riskScore: number;
+  decisionScore: number;
+  description: string;
+  reasons: string[];
+  isResolved: boolean;
+  blockIndex?: number;
 }
 
 export interface DeviceHardwareIdentity {
@@ -90,6 +137,21 @@ export interface DeviceHardwareIdentity {
   registeredAt: string;
   isPrimaryNode: boolean;
   deviceLabel: string;
+  migrationHash?: string;
+  migrationExpiresAt?: string;
+}
+
+export interface LostDeviceRecoveryTicket {
+  ticketId: string;
+  patientId: string;
+  oldDeviceId: string;
+  newDeviceId: string;
+  newDeviceLabel: string;
+  reason: string;
+  status: 'PENDING' | 'APPROVED';
+  requestedAt: string;
+  resolvedAt?: string;
+  approvedByAdmin?: string;
 }
 
 export interface PatientChain {
@@ -101,8 +163,12 @@ export interface PatientChain {
   contact: string;
   chainGenesisDate: string;
   primaryDeviceId: string;
+  activeMigrationToken?: string;
+  migrationTokenExpiresAt?: string;
   blocks: PatientChainBlock[];
   ehrRecords: EHRRecordItem[];
   hospitalConsents: Record<string, InterHospitalConsent>;
   doctorGranularConsents: Record<string, DoctorGranularConsent>;
+  securityAlerts?: SecurityAlertItem[];
+  lostDeviceTickets?: LostDeviceRecoveryTicket[];
 }

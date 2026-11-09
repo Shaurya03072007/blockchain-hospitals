@@ -1,15 +1,15 @@
 import { PatientChain, DeviceHardwareIdentity, HospitalNode } from '../types';
 
 const DB_NAME = 'MedChain_PatientHardwareVault';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_CHAIN = 'patient_sovereign_chain';
 const STORE_DEVICE = 'hardware_device_identity';
 const STORE_HOSPITALS = 'hospital_network_nodes';
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    if (!window.indexedDB) {
-      reject(new Error('IndexedDB is not supported on this browser/device.'));
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      reject(new Error('IndexedDB is not supported in this environment.'));
       return;
     }
     const request = window.indexedDB.open(DB_NAME, DB_VERSION);
@@ -49,14 +49,14 @@ export async function getOrCreateDeviceIdentity(): Promise<DeviceHardwareIdentit
     }
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const platform = navigator.platform || 'System';
-    const randPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const platform = navigator.platform || 'Linux x86_64';
+    const randPart = Math.random().toString(36).substring(2, 8).toUpperCase();
     const deviceId = `DEV-${isMobile ? 'PHONE' : 'NODE'}-${randPart}`;
     const deviceLabel = `${isMobile ? 'Smartphone Node' : 'Workstation Node'} (${platform})`;
 
     const newIdentity: DeviceHardwareIdentity = {
       deviceId,
-      deviceFingerprint: `HW-FP-${Date.now()}-${randPart}`,
+      deviceFingerprint: `HW-FP-${Date.now().toString(36).toUpperCase()}-${randPart}`,
       registeredAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
       isPrimaryNode: true,
       deviceLabel,
@@ -67,15 +67,45 @@ export async function getOrCreateDeviceIdentity(): Promise<DeviceHardwareIdentit
 
     return newIdentity;
   } catch {
-    const fallbackId = `DEV-NODE-${Date.now().toString(36).toUpperCase()}`;
+    const fallbackId = 'DEV-NODE-8F92A1';
     return {
       deviceId: fallbackId,
       deviceFingerprint: `HW-FP-${fallbackId}`,
       registeredAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
       isPrimaryNode: true,
-      deviceLabel: 'Hardware Node',
+      deviceLabel: 'Workstation Hardware Node',
     };
   }
+}
+
+export async function saveDeviceIdentityToHardware(identity: DeviceHardwareIdentity): Promise<boolean> {
+  try {
+    const db = await openDatabase();
+    const tx = db.transaction(STORE_DEVICE, 'readwrite');
+    const store = tx.objectStore(STORE_DEVICE);
+    await new Promise<void>((resolve, reject) => {
+      const clearReq = store.clear();
+      clearReq.onsuccess = () => {
+        const putReq = store.put(identity);
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      clearReq.onerror = () => reject(clearReq.error);
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function generateMigrationHashToken(): { migrationHash: string; expiresAt: string } {
+  const partA = Math.random().toString(16).substring(2, 6).toUpperCase().padEnd(4, 'A');
+  const partB = Math.random().toString(16).substring(2, 6).toUpperCase().padEnd(4, 'F');
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+  return {
+    migrationHash: `MIGRATE-${partA}-${partB}`,
+    expiresAt: expires,
+  };
 }
 
 export async function savePatientChainToHardware(chain: PatientChain): Promise<boolean> {
@@ -129,7 +159,7 @@ export async function saveHospitalsToHardware(hospitals: HospitalNode[]): Promis
     await new Promise<void>((resolve, reject) => {
       const clearReq = store.clear();
       clearReq.onsuccess = () => {
-        hospitals.forEach(h => store.put(h));
+        hospitals.forEach((h) => store.put(h));
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       };
@@ -164,10 +194,14 @@ export async function loadHospitalsFromHardware(): Promise<HospitalNode[] | null
 }
 
 export async function clearHardwareVault(): Promise<void> {
-  const db = await openDatabase();
-  const tx = db.transaction([STORE_CHAIN, STORE_HOSPITALS], 'readwrite');
-  tx.objectStore(STORE_CHAIN).clear();
-  tx.objectStore(STORE_HOSPITALS).clear();
+  try {
+    const db = await openDatabase();
+    const tx = db.transaction([STORE_CHAIN, STORE_HOSPITALS], 'readwrite');
+    tx.objectStore(STORE_CHAIN).clear();
+    tx.objectStore(STORE_HOSPITALS).clear();
+  } catch {
+    // Ignore in environments without IndexedDB
+  }
 }
 
 export function generateEncryptedTransferPayload(

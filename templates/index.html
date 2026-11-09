@@ -1613,7 +1613,7 @@
     async function confirmAdminReject() {
       const reason = document.getElementById("admin-reject-reason-input").value.trim();
       if (!reason) {
-        alert("A rejection reason is MANDATORY for blockchain audit recording!");
+        showToast("A rejection reason is MANDATORY for blockchain audit recording!", "error");
         return;
       }
       try {
@@ -1628,7 +1628,7 @@
           closeAdminRejectModal();
           await loadCrossHospitalData();
         } else {
-          alert(data.error || "Error recording rejection");
+          showToast(data.error || "Error recording rejection", "error");
         }
       } catch (e) {
         console.error(e);
@@ -1729,15 +1729,15 @@
           await loadPatients();
         } else {
           if (res.status === 403) {
-            alert("Admin Access Required:\nYou must be logged in as an Administrator to approve registrations. Please sign in as admin.");
+            showToast("Admin Access Required: Please sign in as admin.", "error");
             openAuthModal('signin');
           } else {
-            alert("Approval Failed: " + (data.error || "Server error occurred."));
+            showToast("Approval Failed: " + (data.error || "Server error occurred."), "error");
           }
         }
       } catch (e) {
         console.error("Approve registration error:", e);
-        alert("Network or connection error while approving registration: " + e.message);
+        showToast("Network or connection error while approving registration: " + e.message, "error");
       } finally {
         if (btnEl) {
           btnEl.disabled = false;
@@ -1759,15 +1759,15 @@
           await loadApprovalsData();
         } else {
           if (res.status === 403) {
-            alert("Admin Access Required:\nYou must be logged in as an Administrator to approve recovery. Please sign in as admin.");
+            showToast("Admin Access Required: Please sign in as admin.", "error");
             openAuthModal('signin');
           } else {
-            alert("Recovery Approval Failed: " + (data.error || "Server error occurred."));
+            showToast("Recovery Approval Failed: " + (data.error || "Server error occurred."), "error");
           }
         }
       } catch (e) {
         console.error("Approve device recovery error:", e);
-        alert("Network or connection error while approving recovery: " + e.message);
+        showToast("Network or connection error while approving recovery: " + e.message, "error");
       } finally {
         if (btnEl) {
           btnEl.disabled = false;
@@ -1871,11 +1871,11 @@
           }
         } else {
           if (data.is_pending) {
-            alert("Account Status: PENDING\n\nYour account has been registered but has not yet been approved by the Administrator on the blockchain. Please wait for approval.");
+            showToast("Account Status: PENDING — Awaiting Administrator approval on the blockchain.", "error");
           } else if (data.device_mismatch) {
-            alert("Device Mismatch Warning!\n\nThis account is locked to a different device (" + (data.registered_device || 'Old Phone') + ").\n\nIf you switched phones, click 'Migrate' tab with your transfer hash. If your old phone was lost, submit a 'Lost Device' recovery ticket.");
+            showToast("Device Mismatch: Locked to " + (data.registered_device || 'Old Phone') + ". Use Migrate or Lost Device tab.", "error");
           } else {
-            alert(data.error || "Sign in failed");
+            showToast(data.error || "Sign in failed", "error");
           }
         }
       } catch (err) {
@@ -1911,9 +1911,9 @@
           }
         } else {
           if (data.is_pending) {
-            alert("Account Status: PENDING\n\nYour account has been registered but has not yet been approved by the Administrator on the blockchain.");
+            showToast("Account Status: PENDING — Awaiting Administrator approval on the blockchain.", "error");
           } else {
-            alert(data.error || "Sign in failed");
+            showToast(data.error || "Sign in failed", "error");
           }
         }
       } catch (err) {
@@ -1950,11 +1950,11 @@
 
         const data = await res.json();
         if (res.ok) {
-          alert("Registration Submitted Successfully!\n\nYour account is in PENDING state awaiting Administrator cryptographic verification on the blockchain. Once approved, you can log in directly from this device.");
+          showToast("Registration submitted! Account is in PENDING state awaiting Admin approval.", "success");
           closeAuthModal();
           await refreshAllData();
         } else {
-          alert(data.error || "Registration failed");
+          showToast(data.error || "Registration failed", "error");
         }
       } catch (err) {
         console.error(err);
@@ -1985,7 +1985,7 @@
           showToast(data.message, "success");
           await refreshAllData();
         } else {
-          alert(data.error || "Migration failed");
+          showToast(data.error || "Migration failed", "error");
         }
       } catch (err) {
         console.error(err);
@@ -2009,10 +2009,10 @@
         });
         const data = await res.json();
         if (res.ok) {
-          alert("Recovery Ticket Submitted!\n\nThe Administrator has received your request and will verify your identity to clear the old device lock. You will then be able to log in and bind this new device.");
+          showToast("Recovery Ticket Submitted! Admin will verify identity to reset device lock.", "success");
           closeAuthModal();
         } else {
-          alert(data.error || "Recovery submission failed");
+          showToast(data.error || "Recovery submission failed", "error");
         }
       } catch (err) {
         console.error(err);
@@ -2068,7 +2068,7 @@
                   </span>
                 </td>
                 <td class="p-3 font-mono text-cyan-400">${txShort}</td>
-                <td class="p-3 font-mono ${(log.ml_anomaly_score || 0) < 0 ? 'text-rose-400 font-bold' : 'text-slate-400'}">
+                <td class="p-3 font-mono ${(log.ml_anomaly_score || 0) >= 0.5 ? 'text-rose-400 font-bold' : 'text-slate-400'}">
                   ${(log.ml_anomaly_score || 0).toFixed(2)}
                 </td>
               `;

@@ -1480,10 +1480,10 @@ def demo_inject_scraper():
         """,
         (
             "ML_ANOMALY",
-            "CRITICAL" if ml_eval.get("is_anomaly") else "HIGH",
+            "CRITICAL" if ml_eval.get("is_suspicious") else "HIGH",
             user.get("id"),
             user.get("username", "scraper_bot"),
-            f"High-velocity EHR scraper probe flagged by Isolation Forest! Risk Score: {ml_eval.get('risk_index', 0.94):.2f}",
+            f"High-velocity EHR scraper probe flagged by Isolation Forest! Risk Score: {ml_eval.get('risk_score', 0.94):.2f}",
             json.dumps({"features": sim_features, "evaluation": ml_eval})
         )
     )
